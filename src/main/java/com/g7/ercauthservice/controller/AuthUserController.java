@@ -2,10 +2,8 @@ package com.g7.ercauthservice.controller;
 
 import com.g7.ercauthservice.entity.AuthUser;
 import com.g7.ercauthservice.entity.RefreshToken;
-import com.g7.ercauthservice.entity.Role;
 import com.g7.ercauthservice.entity.Token;
 import com.g7.ercauthservice.enums.EnumIssueType;
-import com.g7.ercauthservice.enums.EnumRole;
 import com.g7.ercauthservice.exception.EmailEqualException;
 import com.g7.ercauthservice.exception.TokenRefreshException;
 import com.g7.ercauthservice.jwt.JwtUtils;
@@ -31,7 +29,6 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 //import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
@@ -40,6 +37,7 @@ import java.util.stream.Collectors;
 @RestController
 @Slf4j
 @RequestMapping("/api/auth")
+@CrossOrigin(origins = {"http://localhost:3000"},maxAge = 3600,allowCredentials = "true")
 public class AuthUserController {
 
     @Autowired
@@ -116,30 +114,25 @@ public class AuthUserController {
 
     @PostMapping(value = "/token/generate")
     public ResponseEntity<?> generateToken(@RequestBody AuthUserSignInRequest request, HttpServletResponse response){
-        try {
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.getEmail(),request.getPassword()));
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-            String jwt = jwtUtils.generateJwtToken(userDetails);
-            List<String> roles = userDetails.getAuthorities().stream()
-                    .map(GrantedAuthority::getAuthority)
-                    .collect(Collectors.toList());
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.getEmail(),request.getPassword()));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        String jwt = jwtUtils.generateJwtToken(userDetails);
+        List<String> roles = userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
 
-            RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId(),jwt);
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId(),jwt);
 
-            JSONObject body = new JSONObject();
-            body.put("access",jwt);
-            body.put("refresh",refreshToken.getToken());
-            body.put("roles",authUserService.setRoles(roles));
+        JSONObject body = new JSONObject();
+        body.put("access",jwt);
+        body.put("refresh",refreshToken.getToken());
+        body.put("roles",authUserService.setRoles(roles));
 
-            response.addCookie(cookie("access",jwt,3600));
-            response.addCookie(cookie("refresh",refreshToken.getToken(),3600*24));
-            return new ResponseEntity<>(body, HttpStatus.OK);
-        }catch (Exception e){
-            //e.printStackTrace();
-            throw  e;
-        }
+        response.addCookie(cookie("access",jwt,3600));
+        response.addCookie(cookie("refresh",refreshToken.getToken(),3600*24));
+        return new ResponseEntity<>(body, HttpStatus.OK);
     }
 
     @PostMapping("/token/refresh")
@@ -180,8 +173,8 @@ public class AuthUserController {
             response.put("valid",false);
             response.put("id",null);
             response.put("roles",null);
-            throw e;
-            //return new ResponseEntity<>(response,HttpStatus.UNAUTHORIZED);
+            //throw e;
+            return new ResponseEntity<>(response,HttpStatus.UNAUTHORIZED);
         }
     }
 
