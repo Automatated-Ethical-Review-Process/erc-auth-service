@@ -136,7 +136,7 @@ public class AuthUserController {
     }
 
     @PostMapping("/token/refresh")
-    public ResponseEntity<?> refreshToken(HttpServletRequest request) {
+    public ResponseEntity<?> refreshToken(HttpServletRequest request,HttpServletResponse httpServletResponse) {
         Cookie name = WebUtils.getCookie(request, "refresh");
         String requestRefreshToken = name != null ? name.getValue() : null;//request.getToken();
         return refreshTokenService.findByToken(requestRefreshToken)
@@ -147,6 +147,7 @@ public class AuthUserController {
                     log.info("Successfully return new access token from refresh token");
                     JSONObject response = new JSONObject();
                     response.put("access",token);
+                    httpServletResponse.addCookie(cookie("access",token,3600));
                     return new ResponseEntity<>(response,HttpStatus.OK);
                 })
                 .orElseThrow(() ->{
