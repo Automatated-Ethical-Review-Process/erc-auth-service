@@ -23,15 +23,27 @@ public class TokenStoreServiceImpl implements TokenStoreService {
     }
 
     @Override
-    public String getTokenByIdAndIssueFor(String id, EnumIssueType issueType) throws Exception {
+    public Token getTokenByIdAndIssueFor(String id, EnumIssueType issueType) throws Exception {
         try {
             Token token = tokenRepository.findById(id).get();
             if(!exists(id) || token.getIssueFor() != issueType){
                 throw  new Exception("Invalid token");
             }
-            return token.getToken();
+            return token;
         } catch (Exception e) {
            throw e;
+        }
+    }
+
+    public Token getTokenByIdAndIssueFor(String id) throws Exception {
+        try {
+            Token token = tokenRepository.findById(id).get();
+            if(!exists(id)){
+                throw  new Exception("Invalid token");
+            }
+            return token;
+        } catch (Exception e) {
+            throw e;
         }
     }
 

@@ -28,7 +28,9 @@ import org.springframework.web.util.WebUtils;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 //import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
@@ -70,6 +72,19 @@ public class AuthUserController {
         return new ResponseEntity<>(jwtUtils.getUserIdFromRequest(),HttpStatus.ACCEPTED);
     }
 
+    @PostMapping("/create-user/invite/reviewer/token")
+    public ResponseEntity<?> sendCreateReviewerVerificationToken(@RequestBody JSONObject request) {
+        try {
+            String tokenString = jwtUtils.generateTokenFromEmail(request.getAsString("email"));
+            Token token = tokenStoreService.storeToken(new Token(tokenString, EnumIssueType.FOR_INVITE_REVIEWER,"new reviewer request"));
+            JSONObject response = new JSONObject();
+            response.put("token",token.getId());
+            return new ResponseEntity<>(response,HttpStatus.OK);
+        }catch (Exception e){
+            e.printStackTrace();
+            throw e;
+        }
+    }
     @PostMapping("/create-user/token")
     public ResponseEntity<?> sendCreateUserVerificationToken(@RequestBody JSONObject request) {
         try {
@@ -90,8 +105,14 @@ public class AuthUserController {
             if(id == null || !tokenStoreService.exists(id)){
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
-            String token = tokenStoreService.getTokenByIdAndIssueFor(id,EnumIssueType.FOR_EMAIL_VERIFICATION);
-            request.setEmail(jwtUtils.generateEmailFromToken(token));
+            Token token = tokenStoreService.getTokenByIdAndIssueFor(id);
+            request.setEmail(jwtUtils.generateEmailFromToken(token.getToken()));
+            if(token.getIssueFor() == EnumIssueType.FOR_INVITE_REVIEWER){
+                Set<String> roles = new HashSet<>();
+                roles.add("applicant");
+                roles.add("reviewer");
+                request.setRoles(roles);
+            }
             if(authUserService.existAuthUser(request.getEmail())){
                 JSONObject response = new JSONObject();
                 response.put("error : ",request.getEmail()+" is already taken");
@@ -104,7 +125,7 @@ public class AuthUserController {
             AuthUser authUser = authUserService.add(request);
             JSONObject response = new JSONObject();
             response.put("id",authUser.getId());
-            tokenStoreService.deleteToken(token);
+            tokenStoreService.deleteToken(token.getToken());
             return new ResponseEntity<>(response,HttpStatus.CREATED);
         }catch (Exception e){
             e.printStackTrace();
@@ -221,7 +242,7 @@ public class AuthUserController {
             if(id == null || !tokenStoreService.exists(id)){
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
-            String token = tokenStoreService.getTokenByIdAndIssueFor(id,EnumIssueType.FOR_FORGOT_PASSWORD);
+            String token = tokenStoreService.getTokenByIdAndIssueFor(id,EnumIssueType.FOR_FORGOT_PASSWORD).getToken();
             String email = jwtUtils.generateEmailFromToken(token);
             authUserService.forgotPassword(email,request);
             tokenStoreService.deleteToken(token);
@@ -238,7 +259,7 @@ public class AuthUserController {
             if(id == null){
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
-            String token = tokenStoreService.getTokenByIdAndIssueFor(id,EnumIssueType.FOR_EMAIL_UPDATE);
+            String token = tokenStoreService.getTokenByIdAndIssueFor(id,EnumIssueType.FOR_EMAIL_UPDATE).getToken();
             UpdateEmailRequest request = jwtUtils.generateUpdateEmailRequestFromToken(token);
             authUserService.updateEmail(request);
             tokenStoreService.deleteToken(token);
