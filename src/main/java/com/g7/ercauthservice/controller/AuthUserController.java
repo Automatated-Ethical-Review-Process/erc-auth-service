@@ -188,13 +188,13 @@ public class AuthUserController {
             JSONObject response = new JSONObject();
             response.put("valid",true);
             response.put("id",id);
-            response.put("roles",roles);
+            response.put("authorities",roles);
             return new ResponseEntity<>(response,HttpStatus.OK);
         }catch (Exception e){
             JSONObject response = new JSONObject();
             response.put("valid",false);
             response.put("id",null);
-            response.put("roles",null);
+            response.put("authorities",null);
             //throw e;
             return new ResponseEntity<>(response,HttpStatus.UNAUTHORIZED);
         }
