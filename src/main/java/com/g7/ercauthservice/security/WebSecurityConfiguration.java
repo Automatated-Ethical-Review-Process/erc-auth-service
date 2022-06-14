@@ -67,11 +67,11 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST,"/api/auth/update/password/forgot").permitAll()
                 .antMatchers(HttpMethod.POST,"/api/auth/update/email").permitAll()
                 .antMatchers(HttpMethod.POST,"/api/auth/request/validate").permitAll()
+                .antMatchers(HttpMethod.POST,"/api/auth/token/validate").permitAll()
                 .antMatchers(HttpMethod.POST,"/api/auth/current-user").authenticated()
                 .antMatchers(HttpMethod.POST,"/api/auth/update/email/send/token").authenticated()
                 .antMatchers(HttpMethod.POST,"/api/auth/update/password").authenticated()
                 .antMatchers(HttpMethod.POST,"/api/auth/update/roles").authenticated()
-                .antMatchers(HttpMethod.POST,"/api/auth/token/validate").authenticated()
                 .antMatchers("/**").denyAll();
 
         http.addFilterBefore(authTokenFilter(), UsernamePasswordAuthenticationFilter.class);
