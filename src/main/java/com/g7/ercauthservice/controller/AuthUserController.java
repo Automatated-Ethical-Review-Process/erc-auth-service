@@ -178,9 +178,9 @@ public class AuthUserController {
     }
 
     @PostMapping("/token/validate")
-    public ResponseEntity<?> validateToken(){
+    public ResponseEntity<?> validateToken(@RequestBody JSONObject request){
         try {
-            String id = jwtUtils.getUserIdFromRequest();
+            String id = jwtUtils.getUserIdFromJwtToken(request.getAsString("token"));
             UserDetailsImpl userDetails = UserDetailsImpl.build(authUserService.getById(id));
             List<String> roles = userDetails.getAuthorities().stream()
                     .map(GrantedAuthority::getAuthority)
@@ -194,8 +194,9 @@ public class AuthUserController {
             JSONObject response = new JSONObject();
             response.put("valid",false);
             response.put("id",null);
-            response.put("authorities",null);
-            //throw e;
+            response.put("error",e.getMessage());
+            e.printStackTrace();
+            System.out.println(response.toJSONString());
             return new ResponseEntity<>(response,HttpStatus.UNAUTHORIZED);
         }
     }
