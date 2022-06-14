@@ -6,7 +6,7 @@ import com.g7.ercauthservice.entity.Token;
 import com.g7.ercauthservice.enums.EnumIssueType;
 import com.g7.ercauthservice.exception.EmailEqualException;
 import com.g7.ercauthservice.exception.TokenRefreshException;
-import com.g7.ercauthservice.jwt.JwtUtils;
+import com.g7.ercauthservice.security.JwtUtils;
 import com.g7.ercauthservice.model.*;
 import com.g7.ercauthservice.service.RefreshTokenService;
 import com.g7.ercauthservice.service.TokenStoreService;

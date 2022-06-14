@@ -1,4 +1,4 @@
-package com.g7.ercauthservice.jwt;
+package com.g7.ercauthservice.security;
 
 import com.g7.ercauthservice.model.UpdateEmailRequest;
 import com.g7.ercauthservice.service.impl.UserDetailsImpl;

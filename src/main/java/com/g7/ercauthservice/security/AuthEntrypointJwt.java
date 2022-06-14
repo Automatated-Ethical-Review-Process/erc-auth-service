@@ -1,4 +1,4 @@
-package com.g7.ercauthservice.jwt;
+package com.g7.ercauthservice.security;
 
 import com.g7.ercauthservice.exception.ApiError;
 import lombok.extern.slf4j.Slf4j;

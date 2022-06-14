@@ -1,4 +1,4 @@
-package com.g7.ercauthservice;
+package com.g7.ercauthservice.utility;
 
 import com.g7.ercauthservice.config.MailConfiguration;
 import com.g7.ercauthservice.config.ThymeleafConfiguration;

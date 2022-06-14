@@ -1,7 +1,5 @@
-package com.g7.ercauthservice.config;
+package com.g7.ercauthservice.security;
 
-import com.g7.ercauthservice.jwt.AuthEntrypointJwt;
-import com.g7.ercauthservice.jwt.AuthTokenFilter;
 import com.g7.ercauthservice.service.impl.UserDetailsServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
