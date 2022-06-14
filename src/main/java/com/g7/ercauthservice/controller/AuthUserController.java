@@ -297,4 +297,16 @@ public class AuthUserController {
         }
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletResponse response){
+        try {
+            refreshTokenService.deleteByUserId(jwtUtils.getUserIdFromRequest());
+            response.addCookie(cookie("access",null,0));
+            response.addCookie(cookie("refresh",null,0));
+            return new ResponseEntity<>(HttpStatus.OK);
+        }catch (Exception e){
+            throw e;
+        }
+    }
+
 }
