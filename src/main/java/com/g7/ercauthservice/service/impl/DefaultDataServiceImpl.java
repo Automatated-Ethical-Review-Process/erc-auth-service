@@ -9,13 +9,14 @@ import com.g7.ercauthservice.repository.RoleRepository;
 import com.g7.ercauthservice.service.DefaultDataService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.util.HashSet;
 import java.util.Set;
 
-@Service
+@Component
 @Slf4j
 public class DefaultDataServiceImpl implements DefaultDataService {
 
