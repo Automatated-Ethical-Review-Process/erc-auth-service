@@ -31,7 +31,6 @@ public class AuthUser {
     private String email;
 
     @NotBlank
-    @Size(min=7,max=50)
     @Column(name = "password",nullable = false)
     private String password;
 
