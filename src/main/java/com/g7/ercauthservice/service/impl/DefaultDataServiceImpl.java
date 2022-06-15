@@ -32,7 +32,7 @@ public class DefaultDataServiceImpl implements DefaultDataService {
     private PasswordEncoder passwordEncoder;
 
     @Override
-    //@PostConstruct
+    @PostConstruct
     public void insertRolesToDB() {
         if(roleRepository.findAll().isEmpty() && roleRepository.count() !=5){
             Role role1 = new Role(EnumRole.ROLE_APPLICANT);
@@ -52,7 +52,7 @@ public class DefaultDataServiceImpl implements DefaultDataService {
     }
 
     @Override
-    //@PostConstruct
+    @PostConstruct
     public void insertUsersToDB() {
         try{
             if(userRepository.findAll().isEmpty()){
@@ -73,6 +73,8 @@ public class DefaultDataServiceImpl implements DefaultDataService {
                 userRepository.save(authUser);
 
                 log.info("successfully inserted user with all privileges admin@gmail.com PS 12345678");
+            }else{
+                log.info("Already created admin@gmail.com PS 12345678");
             }
         }catch (Exception e){
             log.info("Error insertion admin@gmail.com");
