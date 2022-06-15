@@ -69,7 +69,7 @@ public class AuthUserController {
     @GetMapping(value = "/test") //validate
    // @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> test(HttpServletRequest request,HttpServletResponse response){
-        return new ResponseEntity<>(jwtUtils.getUserIdFromRequest(),HttpStatus.ACCEPTED);
+        return new ResponseEntity<>("jwtUtils.getUserIdFromRequest()",HttpStatus.ACCEPTED);
     }
 
     @PostMapping("/create-user/invite/reviewer/token")
