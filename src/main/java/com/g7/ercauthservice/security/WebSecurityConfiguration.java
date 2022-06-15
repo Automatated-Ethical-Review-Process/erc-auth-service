@@ -1,7 +1,5 @@
-package com.g7.ercauthservice.config;
+package com.g7.ercauthservice.security;
 
-import com.g7.ercauthservice.jwt.AuthEntrypointJwt;
-import com.g7.ercauthservice.jwt.AuthTokenFilter;
 import com.g7.ercauthservice.service.impl.UserDetailsServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,15 +62,16 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST,"/api/auth/token/refresh").permitAll()
                 .antMatchers(HttpMethod.POST,"/api/auth/create-user").permitAll()
                 .antMatchers(HttpMethod.POST,"/api/auth/create-user/token").permitAll()
+                .antMatchers(HttpMethod.POST,"/api/auth/create-user/invite/reviewer/token").permitAll()
                 .antMatchers(HttpMethod.POST,"/api/auth/update/password/forgot/token").permitAll()
                 .antMatchers(HttpMethod.POST,"/api/auth/update/password/forgot").permitAll()
                 .antMatchers(HttpMethod.POST,"/api/auth/update/email").permitAll()
                 .antMatchers(HttpMethod.POST,"/api/auth/request/validate").permitAll()
+                .antMatchers(HttpMethod.POST,"/api/auth/token/validate").permitAll()
                 .antMatchers(HttpMethod.POST,"/api/auth/current-user").authenticated()
                 .antMatchers(HttpMethod.POST,"/api/auth/update/email/send/token").authenticated()
                 .antMatchers(HttpMethod.POST,"/api/auth/update/password").authenticated()
                 .antMatchers(HttpMethod.POST,"/api/auth/update/roles").authenticated()
-                .antMatchers(HttpMethod.POST,"/api/auth/token/validate").authenticated()
                 .antMatchers("/**").denyAll();
 
         http.addFilterBefore(authTokenFilter(), UsernamePasswordAuthenticationFilter.class);

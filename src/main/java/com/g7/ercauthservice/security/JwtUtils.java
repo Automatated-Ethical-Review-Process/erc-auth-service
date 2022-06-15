@@ -1,4 +1,4 @@
-package com.g7.ercauthservice.jwt;
+package com.g7.ercauthservice.security;
 
 import com.g7.ercauthservice.model.UpdateEmailRequest;
 import com.g7.ercauthservice.service.impl.UserDetailsImpl;
@@ -44,10 +44,10 @@ public class JwtUtils {
         return Jwts.parser().setSigningKey(jwtSecret_auth).parseClaimsJws(token).getBody().getSubject();
     }
     private String parseJwt(HttpServletRequest request){
-        String headerAuth = request.getHeader("Authorization");
+        String authenticationHeader = request.getHeader("Authorization");
 
-        if(StringUtils.hasText(headerAuth) && headerAuth.startsWith("Bearer ")){
-            return headerAuth.substring(7);
+        if(StringUtils.hasText(authenticationHeader) && authenticationHeader.startsWith("Bearer ")){
+            return authenticationHeader.substring(7);
         }
         return null;
     }

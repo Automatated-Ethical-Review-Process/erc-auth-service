@@ -2,13 +2,11 @@ package com.g7.ercauthservice.controller;
 
 import com.g7.ercauthservice.entity.AuthUser;
 import com.g7.ercauthservice.entity.RefreshToken;
-import com.g7.ercauthservice.entity.Role;
 import com.g7.ercauthservice.entity.Token;
 import com.g7.ercauthservice.enums.EnumIssueType;
-import com.g7.ercauthservice.enums.EnumRole;
 import com.g7.ercauthservice.exception.EmailEqualException;
 import com.g7.ercauthservice.exception.TokenRefreshException;
-import com.g7.ercauthservice.jwt.JwtUtils;
+import com.g7.ercauthservice.security.JwtUtils;
 import com.g7.ercauthservice.model.*;
 import com.g7.ercauthservice.service.RefreshTokenService;
 import com.g7.ercauthservice.service.TokenStoreService;
@@ -30,6 +28,7 @@ import org.springframework.web.util.WebUtils;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -40,6 +39,7 @@ import java.util.stream.Collectors;
 @RestController
 @Slf4j
 @RequestMapping("/api/auth")
+@CrossOrigin(origins = {"http://localhost:3000"},maxAge = 3600,allowCredentials = "true")
 public class AuthUserController {
 
     @Autowired
@@ -72,6 +72,19 @@ public class AuthUserController {
         return new ResponseEntity<>(jwtUtils.getUserIdFromRequest(),HttpStatus.ACCEPTED);
     }
 
+    @PostMapping("/create-user/invite/reviewer/token")
+    public ResponseEntity<?> sendCreateReviewerVerificationToken(@RequestBody JSONObject request) {
+        try {
+            String tokenString = jwtUtils.generateTokenFromEmail(request.getAsString("email"));
+            Token token = tokenStoreService.storeToken(new Token(tokenString, EnumIssueType.FOR_INVITE_REVIEWER,"new reviewer request"));
+            JSONObject response = new JSONObject();
+            response.put("token",token.getId());
+            return new ResponseEntity<>(response,HttpStatus.OK);
+        }catch (Exception e){
+            e.printStackTrace();
+            throw e;
+        }
+    }
     @PostMapping("/create-user/token")
     public ResponseEntity<?> sendCreateUserVerificationToken(@RequestBody JSONObject request) {
         try {
@@ -92,8 +105,14 @@ public class AuthUserController {
             if(id == null || !tokenStoreService.exists(id)){
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
-            String token = tokenStoreService.getTokenByIdAndIssueFor(id,EnumIssueType.FOR_EMAIL_VERIFICATION);
-            request.setEmail(jwtUtils.generateEmailFromToken(token));
+            Token token = tokenStoreService.getTokenByIdAndIssueFor(id);
+            request.setEmail(jwtUtils.generateEmailFromToken(token.getToken()));
+            if(token.getIssueFor() == EnumIssueType.FOR_INVITE_REVIEWER){
+                Set<String> roles = new HashSet<>();
+                roles.add("applicant");
+                roles.add("reviewer");
+                request.setRoles(roles);
+            }
             if(authUserService.existAuthUser(request.getEmail())){
                 JSONObject response = new JSONObject();
                 response.put("error : ",request.getEmail()+" is already taken");
@@ -106,7 +125,7 @@ public class AuthUserController {
             AuthUser authUser = authUserService.add(request);
             JSONObject response = new JSONObject();
             response.put("id",authUser.getId());
-            tokenStoreService.deleteToken(token);
+            tokenStoreService.deleteToken(token.getToken());
             return new ResponseEntity<>(response,HttpStatus.CREATED);
         }catch (Exception e){
             e.printStackTrace();
@@ -116,34 +135,29 @@ public class AuthUserController {
 
     @PostMapping(value = "/token/generate")
     public ResponseEntity<?> generateToken(@RequestBody AuthUserSignInRequest request, HttpServletResponse response){
-        try {
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.getEmail(),request.getPassword()));
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-            String jwt = jwtUtils.generateJwtToken(userDetails);
-            List<String> roles = userDetails.getAuthorities().stream()
-                    .map(GrantedAuthority::getAuthority)
-                    .collect(Collectors.toList());
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.getEmail(),request.getPassword()));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        String jwt = jwtUtils.generateJwtToken(userDetails);
+        List<String> roles = userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
 
-            RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId(),jwt);
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId(),jwt);
 
-            JSONObject body = new JSONObject();
-            body.put("access",jwt);
-            body.put("refresh",refreshToken.getToken());
-            body.put("roles",authUserService.setRoles(roles));
+        JSONObject body = new JSONObject();
+        body.put("access",jwt);
+        body.put("refresh",refreshToken.getToken());
+        body.put("roles",authUserService.setRoles(roles));
 
-            response.addCookie(cookie("access",jwt,3600));
-            response.addCookie(cookie("refresh",refreshToken.getToken(),3600*24));
-            return new ResponseEntity<>(body, HttpStatus.OK);
-        }catch (Exception e){
-            //e.printStackTrace();
-            throw  e;
-        }
+        response.addCookie(cookie("access",jwt,3600));
+        response.addCookie(cookie("refresh",refreshToken.getToken(),3600*24));
+        return new ResponseEntity<>(body, HttpStatus.OK);
     }
 
     @PostMapping("/token/refresh")
-    public ResponseEntity<?> refreshToken(HttpServletRequest request) {
+    public ResponseEntity<?> refreshToken(HttpServletRequest request,HttpServletResponse httpServletResponse) {
         Cookie name = WebUtils.getCookie(request, "refresh");
         String requestRefreshToken = name != null ? name.getValue() : null;//request.getToken();
         return refreshTokenService.findByToken(requestRefreshToken)
@@ -154,6 +168,7 @@ public class AuthUserController {
                     log.info("Successfully return new access token from refresh token");
                     JSONObject response = new JSONObject();
                     response.put("access",token);
+                    httpServletResponse.addCookie(cookie("access",token,3600));
                     return new ResponseEntity<>(response,HttpStatus.OK);
                 })
                 .orElseThrow(() ->{
@@ -163,9 +178,9 @@ public class AuthUserController {
     }
 
     @PostMapping("/token/validate")
-    public ResponseEntity<?> validateToken(){
+    public ResponseEntity<?> validateToken(@RequestBody JSONObject request){
         try {
-            String id = jwtUtils.getUserIdFromRequest();
+            String id = jwtUtils.getUserIdFromJwtToken(request.getAsString("token"));
             UserDetailsImpl userDetails = UserDetailsImpl.build(authUserService.getById(id));
             List<String> roles = userDetails.getAuthorities().stream()
                     .map(GrantedAuthority::getAuthority)
@@ -173,15 +188,16 @@ public class AuthUserController {
             JSONObject response = new JSONObject();
             response.put("valid",true);
             response.put("id",id);
-            response.put("roles",roles);
+            response.put("authorities",roles);
             return new ResponseEntity<>(response,HttpStatus.OK);
         }catch (Exception e){
             JSONObject response = new JSONObject();
             response.put("valid",false);
             response.put("id",null);
-            response.put("roles",null);
-            throw e;
-            //return new ResponseEntity<>(response,HttpStatus.UNAUTHORIZED);
+            response.put("error",e.getMessage());
+            e.printStackTrace();
+            System.out.println(response.toJSONString());
+            return new ResponseEntity<>(response,HttpStatus.UNAUTHORIZED);
         }
     }
 
@@ -227,7 +243,7 @@ public class AuthUserController {
             if(id == null || !tokenStoreService.exists(id)){
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
-            String token = tokenStoreService.getTokenByIdAndIssueFor(id,EnumIssueType.FOR_FORGOT_PASSWORD);
+            String token = tokenStoreService.getTokenByIdAndIssueFor(id,EnumIssueType.FOR_FORGOT_PASSWORD).getToken();
             String email = jwtUtils.generateEmailFromToken(token);
             authUserService.forgotPassword(email,request);
             tokenStoreService.deleteToken(token);
@@ -244,7 +260,7 @@ public class AuthUserController {
             if(id == null){
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
-            String token = tokenStoreService.getTokenByIdAndIssueFor(id,EnumIssueType.FOR_EMAIL_UPDATE);
+            String token = tokenStoreService.getTokenByIdAndIssueFor(id,EnumIssueType.FOR_EMAIL_UPDATE).getToken();
             UpdateEmailRequest request = jwtUtils.generateUpdateEmailRequestFromToken(token);
             authUserService.updateEmail(request);
             tokenStoreService.deleteToken(token);
@@ -298,6 +314,18 @@ public class AuthUserController {
             body.put("email",authUser.getEmail());
             body.put("roles",authUserService.setRoles(roles));
             return new ResponseEntity<>(body,HttpStatus.OK);
+        }catch (Exception e){
+            throw e;
+        }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletResponse response){
+        try {
+            refreshTokenService.deleteByUserId(jwtUtils.getUserIdFromRequest());
+            response.addCookie(cookie("access",null,0));
+            response.addCookie(cookie("refresh",null,0));
+            return new ResponseEntity<>(HttpStatus.OK);
         }catch (Exception e){
             throw e;
         }
