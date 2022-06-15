@@ -9,6 +9,7 @@ import com.g7.ercauthservice.repository.RoleRepository;
 import com.g7.ercauthservice.service.DefaultDataService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +27,9 @@ public class DefaultDataServiceImpl implements DefaultDataService {
     private AuthUserRepository userRepository;
     @Autowired
     private AuthUserServiceImpl authUserService;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Override
     //@PostConstruct
@@ -52,7 +56,7 @@ public class DefaultDataServiceImpl implements DefaultDataService {
     public void insertUsersToDB() {
         try{
             if(userRepository.findAll().isEmpty()){
-                AuthUserCreateRequest request = new AuthUserCreateRequest();
+                AuthUser authUser = new AuthUser();
                 Set<String> roles = new HashSet<>();
                 roles.add("admin");
                 roles.add("secretary");
@@ -60,13 +64,14 @@ public class DefaultDataServiceImpl implements DefaultDataService {
                 roles.add("clerk");
                 roles.add("reviewer");
 
-                request.setEmail("admin@gmail.com");
-                request.setPassword("12345678");
-                request.setRoles(roles);
-                AuthUser user = authUserService.add(request);
-                if(user.getRoles().isEmpty()){
-                    authUserService.remove(user.getId());
-                }
+                authUser.setEmail("admin@gmail.com");
+                authUser.setPassword(passwordEncoder.encode("12345678"));
+                authUser.setIsLocked(true);
+                authUser.setIsVerified(true);
+                authUser.setRoles(authUserService.getRoles(roles));
+                System.out.println(authUser);
+                userRepository.save(authUser);
+
                 log.info("successfully inserted user with all privileges admin@gmail.com PS 12345678");
             }
         }catch (Exception e){
