@@ -51,13 +51,16 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+
+        http.authorizeHttpRequests().antMatchers("/api/auth/test/**").permitAll();
+
         http.cors().and().csrf().disable()
                 .exceptionHandling().authenticationEntryPoint(authEntrypointJwt).and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
                 .authorizeHttpRequests()
                 .antMatchers(HttpMethod.PATCH,"/**").denyAll()
                 .antMatchers(HttpMethod.HEAD,"/**").denyAll()
-                .antMatchers("/api/auth/test/**").permitAll()
+                //.antMatchers("/api/auth/test/**").permitAll()
                 .antMatchers(HttpMethod.POST,"/api/auth/token/generate").permitAll()
                 .antMatchers(HttpMethod.POST,"/api/auth/token/refresh").permitAll()
                 .antMatchers(HttpMethod.POST,"/api/auth/create-user").permitAll()
