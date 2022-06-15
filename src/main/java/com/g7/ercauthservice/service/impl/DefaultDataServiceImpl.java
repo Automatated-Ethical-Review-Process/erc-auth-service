@@ -16,7 +16,7 @@ import javax.annotation.PostConstruct;
 import java.util.HashSet;
 import java.util.Set;
 
-@Component
+@Service
 @Slf4j
 public class DefaultDataServiceImpl implements DefaultDataService {
 
@@ -28,7 +28,7 @@ public class DefaultDataServiceImpl implements DefaultDataService {
     private AuthUserServiceImpl authUserService;
 
     @Override
-    @PostConstruct
+    //@PostConstruct
     public void insertRolesToDB() {
         if(roleRepository.findAll().isEmpty() && roleRepository.count() !=5){
             Role role1 = new Role(EnumRole.ROLE_APPLICANT);
@@ -48,7 +48,7 @@ public class DefaultDataServiceImpl implements DefaultDataService {
     }
 
     @Override
-    @PostConstruct
+    //@PostConstruct
     public void insertUsersToDB() {
         try{
             if(userRepository.findAll().isEmpty()){
