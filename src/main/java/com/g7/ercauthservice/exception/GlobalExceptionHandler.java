@@ -80,6 +80,15 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler{
         return apiError;
     }
 
+    @ExceptionHandler(UserAlreadyExistException.class)
+    @ResponseBody
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError UserAlreadyExistExceptionHandler(UserAlreadyExistException ex){
+        ApiError apiError = new ApiError();
+        apiError.setFields(null);
+        apiError.setMessage(ex.getMessage());
+        return apiError;
+    }
     @ExceptionHandler(Exception.class)
     @ResponseBody
     @ResponseStatus(HttpStatus.BAD_REQUEST)
