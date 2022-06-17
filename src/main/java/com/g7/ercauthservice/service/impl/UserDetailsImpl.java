@@ -25,8 +25,8 @@ public class UserDetailsImpl implements UserDetails {
         this.id = id;
         this.email = email;
         this.password = password;
-        this.isLocked = isLocked;
-        this.isVerified = isVerified;
+        UserDetailsImpl.isLocked = isLocked;
+        UserDetailsImpl.isVerified = isVerified;
         this.authorities = authorities;
     }
 
@@ -39,7 +39,7 @@ public class UserDetailsImpl implements UserDetails {
                 user.getId(),
                 user.getEmail(),
                 user.getPassword(),
-                isLocked, isVerified, authorities
+                user.getIsLocked(), user.getIsVerified(), authorities
         );
     }
 
@@ -79,6 +79,6 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return isLocked;
     }
 }
