@@ -15,6 +15,7 @@ import java.time.Instant;
 import java.util.Optional;
 
 @Service
+@Transactional
 public class RefreshTokenServiceImpl implements RefreshTokenService {
 
     @Value("${jwtRefreshExpirationMs}")

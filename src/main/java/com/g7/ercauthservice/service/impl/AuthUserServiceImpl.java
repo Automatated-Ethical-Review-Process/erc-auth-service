@@ -2,6 +2,8 @@ package com.g7.ercauthservice.service.impl;
 
 import com.g7.ercauthservice.entity.AuthUser;
 import com.g7.ercauthservice.entity.Role;
+import com.g7.ercauthservice.entity.Token;
+import com.g7.ercauthservice.enums.EnumIssueType;
 import com.g7.ercauthservice.enums.EnumRole;
 import com.g7.ercauthservice.exception.EmailEqualException;
 import com.g7.ercauthservice.exception.PasswordMatchingException;
@@ -11,6 +13,7 @@ import com.g7.ercauthservice.model.ForgotPasswordRequest;
 import com.g7.ercauthservice.model.UpdateEmailRequest;
 import com.g7.ercauthservice.repository.AuthUserRepository;
 import com.g7.ercauthservice.repository.RoleRepository;
+import com.g7.ercauthservice.security.JwtUtils;
 import com.g7.ercauthservice.service.AuthUserService;
 import com.g7.ercauthservice.service.RefreshTokenService;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +29,7 @@ import java.util.Set;
 
 @Service
 @Slf4j
+@Transactional
 public class AuthUserServiceImpl implements AuthUserService {
 
     @Autowired
@@ -36,20 +40,38 @@ public class AuthUserServiceImpl implements AuthUserService {
     private RefreshTokenService refreshTokenService;
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JwtUtils jwtUtils;
     @Override
-    public AuthUser add(AuthUserCreateRequest request) {
+    public AuthUser add(AuthUserCreateRequest request, Token token) {
         AuthUser authUser = new AuthUser();
-        authUser.setEmail(request.getEmail());
+        authUser.setEmail(jwtUtils.generateEmailFromToken(token.getToken()));
         authUser.setPassword(passwordEncoder.encode(request.getPassword()));
         authUser.setIsLocked(true);
         authUser.setIsVerified(true);
-        authUser.setRoles(getRoles(request.getRoles()));
+        Set<String> roles = new HashSet<>();
+        switch (token.getIssueFor()){
+            case FOR_INVITE_REVIEWER:
+                roles.add("applicant");
+                roles.add("external_reviewer");
+                break;
+            case FOR_INVITE_SECRETARY:
+                roles.add("secretary");
+                roles.add("reviewer");
+                break;
+            case FOR_INVITE_CLERK:
+                roles.add("clerk");
+                break;
+            default:
+                roles.add("applicant");
+        }
+        authUser.setRoles(getRoles(roles));
         System.out.println(authUser);
         return userRepository.save(authUser);
     }
 
     @Override
-    @Transactional
     public void remove(String id) {
         AuthUser authUser = userRepository.findById(id).get();
         refreshTokenService.deleteByUserId(authUser.getId());
@@ -57,7 +79,6 @@ public class AuthUserServiceImpl implements AuthUserService {
     }
 
     @Override
-    @Transactional
     public void updatePassword(String id, String oldPassword, String newPassword) {
         try {
             AuthUser authUser = userRepository.findById(id).get();
@@ -158,12 +179,16 @@ public class AuthUserServiceImpl implements AuthUserService {
                             .orElseThrow(()-> new RuntimeException("Error: Role is not found."));
                     roles.add(clerkRole);
                     break;
-                case "reviewer":
-                    Role reviewerRole = roleRepository.findByName(EnumRole.ROLE_REVIEWER)
+                case "internal_reviewer":
+                    Role ireviewerRole = roleRepository.findByName(EnumRole.ROLE_INTERNAL_REVIEWER)
                             .orElseThrow(()-> new RuntimeException("Error: Role is not found."));
-                    roles.add(reviewerRole);
+                    roles.add(ireviewerRole);
                     break;
-
+                case "external_reviewer":
+                    Role ereviewerRole = roleRepository.findByName(EnumRole.ROLE_EXTERNAL_REVIEWER)
+                            .orElseThrow(()-> new RuntimeException("Error: Role is not found."));
+                    roles.add(ereviewerRole);
+                    break;
                 case "applicant":
                     Role applicantRole = roleRepository.findByName(EnumRole.ROLE_APPLICANT)
                             .orElseThrow(()-> new RuntimeException("Error: Role is not found."));
@@ -190,8 +215,11 @@ public class AuthUserServiceImpl implements AuthUserService {
                 case "ROLE_CLERK":
                     roles.add("clerk");
                     break;
-                case "ROLE_REVIEWER":
-                    roles.add("reviewer");
+                case "ROLE_INTERNAL_REVIEWER":
+                    roles.add("internal_reviewer");
+                    break;
+                case "ROLE_EXTERNAL_REVIEWER":
+                    roles.add("external_reviewer");
                     break;
                 case "ROLE_APPLICANT":
                     roles.add("applicant");
@@ -213,8 +241,11 @@ public class AuthUserServiceImpl implements AuthUserService {
                 case ROLE_CLERK:
                     roles.add("clerk");
                     break;
-                case ROLE_REVIEWER:
-                    roles.add("reviewer");
+                case ROLE_INTERNAL_REVIEWER:
+                    roles.add("internal_reviewer");
+                    break;
+                case ROLE_EXTERNAL_REVIEWER:
+                    roles.add("external_reviewer");
                     break;
                 case ROLE_APPLICANT:
                     roles.add("applicant");

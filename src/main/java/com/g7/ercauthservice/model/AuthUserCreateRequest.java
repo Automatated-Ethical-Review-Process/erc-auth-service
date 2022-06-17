@@ -10,10 +10,6 @@ import java.util.Set;
 @Data
 @NoArgsConstructor
 public class AuthUserCreateRequest {
-    @Email
-    private String email;
     @NotBlank
     private String password;
-    @NotBlank
-    private Set<String> roles;
 }

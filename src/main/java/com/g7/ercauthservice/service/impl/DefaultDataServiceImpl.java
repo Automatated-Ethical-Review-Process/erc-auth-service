@@ -14,11 +14,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import javax.transaction.Transactional;
 import java.util.HashSet;
 import java.util.Set;
 
 @Service
 @Slf4j
+@Transactional
 public class DefaultDataServiceImpl implements DefaultDataService {
 
     @Autowired
@@ -34,16 +36,18 @@ public class DefaultDataServiceImpl implements DefaultDataService {
     @Override
     @PostConstruct
     public void insertRolesToDB() {
-        if(roleRepository.findAll().isEmpty() && roleRepository.count() !=5){
+        if(roleRepository.findAll().isEmpty() && roleRepository.count() !=6){
             Role role1 = new Role(EnumRole.ROLE_APPLICANT);
-            Role role2 = new Role(EnumRole.ROLE_REVIEWER);
-            Role role3 = new Role(EnumRole.ROLE_CLERK);
-            Role role4 = new Role(EnumRole.ROLE_SECRETARY);
-            Role role5 = new Role(EnumRole.ROLE_ADMIN);
+            Role role2 = new Role(EnumRole.ROLE_INTERNAL_REVIEWER);
+            Role role3 = new Role(EnumRole.ROLE_EXTERNAL_REVIEWER);
+            Role role4 = new Role(EnumRole.ROLE_CLERK);
+            Role role5 = new Role(EnumRole.ROLE_SECRETARY);
+            Role role6 = new Role(EnumRole.ROLE_ADMIN);
             roleRepository.save(role1);
             roleRepository.save(role2);
             roleRepository.save(role3);
             roleRepository.save(role4);
+            roleRepository.save(role6);
             roleRepository.save(role5);
             log.info("Inserted user roles to database");
         }else {
@@ -62,7 +66,8 @@ public class DefaultDataServiceImpl implements DefaultDataService {
                 roles.add("secretary");
                 roles.add("applicant");
                 roles.add("clerk");
-                roles.add("reviewer");
+                roles.add("internal_reviewer");
+                roles.add("external_reviewer");
 
                 authUser.setEmail("admin@gmail.com");
                 authUser.setPassword(passwordEncoder.encode("12345678"));

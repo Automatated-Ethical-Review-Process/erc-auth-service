@@ -6,6 +6,7 @@ import com.g7.ercauthservice.entity.Token;
 import com.g7.ercauthservice.enums.EnumIssueType;
 import com.g7.ercauthservice.exception.EmailEqualException;
 import com.g7.ercauthservice.exception.TokenRefreshException;
+import com.g7.ercauthservice.exception.UserAlreadyExistException;
 import com.g7.ercauthservice.security.JwtUtils;
 import com.g7.ercauthservice.model.*;
 import com.g7.ercauthservice.service.RefreshTokenService;
@@ -28,6 +29,7 @@ import org.springframework.web.util.WebUtils;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.constraints.Email;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -88,6 +90,11 @@ public class AuthUserController {
     @PostMapping("/create-user/token")
     public ResponseEntity<?> sendCreateUserVerificationToken(@RequestBody JSONObject request) {
         try {
+            @Email
+            String email = request.getAsString("email");
+            if(authUserService.existAuthUser(email)){
+                throw  new UserAlreadyExistException(email+" is already exists..!");
+            }
             String tokenString = jwtUtils.generateTokenFromEmail(request.getAsString("email"));
             Token token = tokenStoreService.storeToken(new Token(tokenString, EnumIssueType.FOR_EMAIL_VERIFICATION,"new user request"));
             JSONObject response = new JSONObject();
@@ -106,29 +113,13 @@ public class AuthUserController {
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
             Token token = tokenStoreService.getTokenByIdAndIssueFor(id);
-            request.setEmail(jwtUtils.generateEmailFromToken(token.getToken()));
-            if(token.getIssueFor() == EnumIssueType.FOR_INVITE_REVIEWER){
-                Set<String> roles = new HashSet<>();
-                roles.add("applicant");
-                roles.add("reviewer");
-                request.setRoles(roles);
-            }
-            if(authUserService.existAuthUser(request.getEmail())){
-                JSONObject response = new JSONObject();
-                response.put("error : ",request.getEmail()+" is already taken");
-                return new ResponseEntity<>(response,HttpStatus.CONFLICT);
-            }
-            if(request.getRoles() == null){
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-            }
-
-            AuthUser authUser = authUserService.add(request);
-            JSONObject response = new JSONObject();
-            response.put("id",authUser.getId());
+            AuthUser authUser = authUserService.add(request,token);
             tokenStoreService.deleteToken(token.getToken());
-            return new ResponseEntity<>(response,HttpStatus.CREATED);
+            log.info("user created >> {}",authUser.getEmail());
+            return new ResponseEntity<>(HttpStatus.CREATED);
         }catch (Exception e){
             e.printStackTrace();
+            log.error("error user created >> invalid token or process failed");
             throw e;
         }
     }
@@ -195,8 +186,6 @@ public class AuthUserController {
             response.put("valid",false);
             response.put("id",null);
             response.put("error",e.getMessage());
-            e.printStackTrace();
-            System.out.println(response.toJSONString());
             return new ResponseEntity<>(response,HttpStatus.UNAUTHORIZED);
         }
     }
