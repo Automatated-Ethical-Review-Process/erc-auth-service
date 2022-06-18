@@ -5,16 +5,28 @@ import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.TypeMismatchException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import javax.persistence.EntityNotFoundException;
+import javax.validation.ConstraintViolationException;
+import java.util.ArrayList;
+import java.util.List;
 
 @ControllerAdvice
 @Slf4j
@@ -89,12 +101,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler{
         apiError.setMessage(ex.getMessage());
         return apiError;
     }
+
     @ExceptionHandler(Exception.class)
     @ResponseBody
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError AllExceptionHandler(Exception ex){
         ApiError apiError = new ApiError();
         apiError.setFields(null);
+        System.out.println("hello");
         apiError.setMessage(ex.getMessage());
         return apiError;
     }
@@ -150,4 +164,38 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler{
         return apiError;
     }
 //=====================================jwt end========================================
+
+
+    @Override
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+        ApiError apiError = new ApiError();
+        BindingResult result = ex.getBindingResult();
+        List<FieldError> fieldErrors = result.getFieldErrors();
+        List<String> fields = new ArrayList<>();
+        for(FieldError fieldError:fieldErrors){
+            if(!fields.contains(fieldError.getField())){
+                fields.add(fieldError.getField());
+            };
+        }
+        apiError.setFields(fields);
+        apiError.setMessage("Invalid input");
+
+        return new ResponseEntity<>(apiError,HttpStatus.BAD_REQUEST);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleHttpRequestMethodNotSupported(HttpRequestMethodNotSupportedException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+        ApiError apiError = new ApiError();
+        apiError.setMessage(ex.getMessage());
+        apiError.setFields(null);
+        return new ResponseEntity<>(apiError,HttpStatus.METHOD_NOT_ALLOWED);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+        ApiError apiError = new ApiError();
+        apiError.setMessage("Required request body is missing");
+        apiError.setFields(null);
+        return new ResponseEntity<>(apiError,HttpStatus.BAD_REQUEST);
+    }
 }

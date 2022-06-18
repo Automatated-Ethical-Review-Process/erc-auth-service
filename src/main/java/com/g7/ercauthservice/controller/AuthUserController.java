@@ -7,8 +7,8 @@ import com.g7.ercauthservice.enums.EnumIssueType;
 import com.g7.ercauthservice.exception.EmailEqualException;
 import com.g7.ercauthservice.exception.TokenRefreshException;
 import com.g7.ercauthservice.exception.UserAlreadyExistException;
-import com.g7.ercauthservice.security.JwtUtils;
 import com.g7.ercauthservice.model.*;
+import com.g7.ercauthservice.security.JwtUtils;
 import com.g7.ercauthservice.service.RefreshTokenService;
 import com.g7.ercauthservice.service.TokenStoreService;
 import com.g7.ercauthservice.service.impl.AuthUserServiceImpl;
@@ -29,10 +29,8 @@ import org.springframework.web.util.WebUtils;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.constraints.Email;
-import java.util.HashSet;
+import javax.validation.Valid;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 //import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
@@ -70,14 +68,23 @@ public class AuthUserController {
 
     @GetMapping(value = "/test") //validate
    // @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> test(HttpServletRequest request,HttpServletResponse response){
-        return new ResponseEntity<>("jwtUtils.getUserIdFromRequest()",HttpStatus.ACCEPTED);
+    public ResponseEntity<?> test(@RequestBody @Valid Test test){
+        try {
+            return new ResponseEntity<>(test,HttpStatus.ACCEPTED);
+        }catch (Exception e){
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     @PostMapping("/create-user/invite/reviewer/token")
     public ResponseEntity<?> sendCreateReviewerVerificationToken(@RequestBody JSONObject request) {
         try {
-            String tokenString = jwtUtils.generateTokenFromEmail(request.getAsString("email"));
+            String email = request.getAsString("email");
+            if(authUserService.existAuthUser(email)){
+                throw  new UserAlreadyExistException(email+" is already exists..!");
+            }
+            String tokenString = jwtUtils.generateTokenFromEmail(email);
             Token token = tokenStoreService.storeToken(new Token(tokenString, EnumIssueType.FOR_INVITE_REVIEWER,"new reviewer request"));
             JSONObject response = new JSONObject();
             response.put("token",token.getId());
@@ -90,7 +97,6 @@ public class AuthUserController {
     @PostMapping("/create-user/token")
     public ResponseEntity<?> sendCreateUserVerificationToken(@RequestBody JSONObject request) {
         try {
-            @Email
             String email = request.getAsString("email");
             if(authUserService.existAuthUser(email)){
                 throw  new UserAlreadyExistException(email+" is already exists..!");
