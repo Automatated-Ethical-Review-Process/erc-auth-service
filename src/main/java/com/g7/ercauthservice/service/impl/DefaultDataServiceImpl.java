@@ -47,8 +47,8 @@ public class DefaultDataServiceImpl implements DefaultDataService {
             roleRepository.save(role2);
             roleRepository.save(role3);
             roleRepository.save(role4);
-            roleRepository.save(role6);
             roleRepository.save(role5);
+            roleRepository.save(role6);
             log.info("Inserted user roles to database");
         }else {
             log.info("user roles already exists");

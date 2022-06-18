@@ -21,8 +21,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -120,6 +122,15 @@ public class AuthUserServiceImpl implements AuthUserService {
         AuthUser authUser = userRepository.findById(id).get();
         if(1 <= getRoles(roles).size() && getRoles(roles).size()<5){
             Set<Role> enumRoles = getRoles(roles);
+            for (Role role:enumRoles) {
+                if(checkRoleUnique(role.getName()) && role.getName()==EnumRole.ROLE_CLERK){
+                    throw new RoleException("This is unique role CLERK");
+                }else if(checkRoleUnique(role.getName()) && role.getName()==EnumRole.ROLE_SECRETARY){
+                    throw new RoleException("This is unique role SECRETARY");
+                }else if(checkRoleUnique(role.getName()) && role.getName()==EnumRole.ROLE_ADMIN){
+                    throw new RoleException("This is unique role ADMIN");
+                }
+            }
             if(enumRoles.contains(null)){
                 throw new RoleException("Your entered invalid role");
             }
@@ -252,5 +263,9 @@ public class AuthUserServiceImpl implements AuthUserService {
             }
         });
         return roles;
+    }
+
+    public Boolean checkRoleUnique(EnumRole role){
+        return userRepository.checkRoleUnique(roleRepository.findByName(role).get().getId());
     }
 }

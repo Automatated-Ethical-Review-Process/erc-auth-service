@@ -4,7 +4,9 @@ import com.g7.ercauthservice.entity.AuthUser;
 import com.g7.ercauthservice.entity.RefreshToken;
 import com.g7.ercauthservice.entity.Token;
 import com.g7.ercauthservice.enums.EnumIssueType;
+import com.g7.ercauthservice.enums.EnumRole;
 import com.g7.ercauthservice.exception.EmailEqualException;
+import com.g7.ercauthservice.exception.RoleException;
 import com.g7.ercauthservice.exception.TokenRefreshException;
 import com.g7.ercauthservice.exception.UserAlreadyExistException;
 import com.g7.ercauthservice.model.*;
@@ -44,7 +46,6 @@ public class AuthUserController {
 
     @Autowired
     private AuthUserServiceImpl authUserService;
-
     private final AuthenticationManager authenticationManager;
     @Autowired
     private JwtUtils jwtUtils;
@@ -86,6 +87,48 @@ public class AuthUserController {
             }
             String tokenString = jwtUtils.generateTokenFromEmail(email);
             Token token = tokenStoreService.storeToken(new Token(tokenString, EnumIssueType.FOR_INVITE_REVIEWER,"new reviewer request"));
+            JSONObject response = new JSONObject();
+            response.put("token",token.getId());
+            return new ResponseEntity<>(response,HttpStatus.OK);
+        }catch (Exception e){
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    @PostMapping("/create-user/invite/clerk/token")
+    public ResponseEntity<?> sendCreateClerkVerificationToken(@RequestBody JSONObject request) {
+        try {
+            String email = request.getAsString("email");
+            if(authUserService.existAuthUser(email)){
+                throw  new UserAlreadyExistException(email+" is already exists..!");
+            }
+            if(authUserService.checkRoleUnique(EnumRole.ROLE_CLERK)){
+                throw new RoleException("This is unique role");
+            }
+            String tokenString = jwtUtils.generateTokenFromEmail(email);
+            Token token = tokenStoreService.storeToken(new Token(tokenString, EnumIssueType.FOR_INVITE_CLERK,"new reviewer request"));
+            JSONObject response = new JSONObject();
+            response.put("token",token.getId());
+            return new ResponseEntity<>(response,HttpStatus.OK);
+        }catch (Exception e){
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    @PostMapping("/create-user/invite/secretary/token")
+    public ResponseEntity<?> sendCreateSecretaryVerificationToken(@RequestBody JSONObject request) {
+        try {
+            String email = request.getAsString("email");
+            if(authUserService.existAuthUser(email)){
+                throw  new UserAlreadyExistException(email+" is already exists..!");
+            }
+            if(authUserService.checkRoleUnique(EnumRole.ROLE_SECRETARY)){
+                throw new RoleException("This is unique role");
+            }
+            String tokenString = jwtUtils.generateTokenFromEmail(email);
+            Token token = tokenStoreService.storeToken(new Token(tokenString, EnumIssueType.FOR_INVITE_SECRETARY,"new reviewer request"));
             JSONObject response = new JSONObject();
             response.put("token",token.getId());
             return new ResponseEntity<>(response,HttpStatus.OK);
