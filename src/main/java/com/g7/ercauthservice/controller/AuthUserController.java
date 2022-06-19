@@ -3,8 +3,9 @@ package com.g7.ercauthservice.controller;
 import com.g7.ercauthservice.entity.AuthUser;
 import com.g7.ercauthservice.entity.RefreshToken;
 import com.g7.ercauthservice.entity.Token;
-import com.g7.ercauthservice.enums.EnumIssueType;
-import com.g7.ercauthservice.enums.EnumRole;
+import com.g7.ercauthservice.enums.IssueType;
+import com.g7.ercauthservice.enums.MailType;
+import com.g7.ercauthservice.enums.Role;
 import com.g7.ercauthservice.exception.EmailEqualException;
 import com.g7.ercauthservice.exception.RoleException;
 import com.g7.ercauthservice.exception.TokenRefreshException;
@@ -15,6 +16,7 @@ import com.g7.ercauthservice.service.RefreshTokenService;
 import com.g7.ercauthservice.service.TokenStoreService;
 import com.g7.ercauthservice.service.impl.AuthUserServiceImpl;
 import com.g7.ercauthservice.service.impl.UserDetailsImpl;
+import com.g7.ercauthservice.utility.MailService;
 import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,10 +30,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.WebUtils;
 
+import javax.mail.MessagingException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -53,6 +56,8 @@ public class AuthUserController {
     private RefreshTokenService refreshTokenService;
     @Autowired
     private TokenStoreService tokenStoreService;
+    @Autowired
+    private MailService mailService;
 
     public AuthUserController(AuthenticationManager authenticationManager) {
         this.authenticationManager = authenticationManager;
@@ -69,9 +74,10 @@ public class AuthUserController {
 
     @GetMapping(value = "/test") //validate
    // @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> test(@RequestBody @Valid Test test){
+    public ResponseEntity<?> test() throws MessagingException, IOException {
         try {
-            return new ResponseEntity<>(test,HttpStatus.ACCEPTED);
+            mailService.sendEmail("gsample590@gmail.com","Invitation from ERC", MailType.INVITE_CLERK);
+            return new ResponseEntity<>(HttpStatus.ACCEPTED);
         }catch (Exception e){
             e.printStackTrace();
             throw e;
@@ -79,16 +85,17 @@ public class AuthUserController {
     }
 
     @PostMapping("/create-user/invite/reviewer/token")
-    public ResponseEntity<?> sendCreateReviewerVerificationToken(@RequestBody JSONObject request) {
+    public ResponseEntity<?> sendCreateReviewerVerificationToken(@RequestBody JSONObject request) throws MessagingException, IOException {
         try {
             String email = request.getAsString("email");
             if(authUserService.existAuthUser(email)){
                 throw  new UserAlreadyExistException(email+" is already exists..!");
             }
             String tokenString = jwtUtils.generateTokenFromEmail(email);
-            Token token = tokenStoreService.storeToken(new Token(tokenString, EnumIssueType.FOR_INVITE_REVIEWER,"new reviewer request"));
+            Token token = tokenStoreService.storeToken(new Token(tokenString, IssueType.FOR_INVITE_REVIEWER,"new reviewer request"));
             JSONObject response = new JSONObject();
             response.put("token",token.getId());
+            //mailService.sendEmail("gsample590@gmail.com","Invitation from ERC", MailType.INVITE_REVIEWER);
             return new ResponseEntity<>(response,HttpStatus.OK);
         }catch (Exception e){
             e.printStackTrace();
@@ -97,19 +104,20 @@ public class AuthUserController {
     }
 
     @PostMapping("/create-user/invite/clerk/token")
-    public ResponseEntity<?> sendCreateClerkVerificationToken(@RequestBody JSONObject request) {
+    public ResponseEntity<?> sendCreateClerkVerificationToken(@RequestBody JSONObject request) throws MessagingException, IOException {
         try {
             String email = request.getAsString("email");
             if(authUserService.existAuthUser(email)){
                 throw  new UserAlreadyExistException(email+" is already exists..!");
             }
-            if(authUserService.checkRoleUnique(EnumRole.ROLE_CLERK)){
+            if(authUserService.checkRoleUnique(Role.ROLE_CLERK)){
                 throw new RoleException("This is unique role");
             }
             String tokenString = jwtUtils.generateTokenFromEmail(email);
-            Token token = tokenStoreService.storeToken(new Token(tokenString, EnumIssueType.FOR_INVITE_CLERK,"new reviewer request"));
+            Token token = tokenStoreService.storeToken(new Token(tokenString, IssueType.FOR_INVITE_CLERK,"new reviewer request"));
             JSONObject response = new JSONObject();
             response.put("token",token.getId());
+            //mailService.sendEmail("gsample590@gmail.com","Invitation from ERC", MailType.INVITE_CLERK);
             return new ResponseEntity<>(response,HttpStatus.OK);
         }catch (Exception e){
             e.printStackTrace();
@@ -118,19 +126,20 @@ public class AuthUserController {
     }
 
     @PostMapping("/create-user/invite/secretary/token")
-    public ResponseEntity<?> sendCreateSecretaryVerificationToken(@RequestBody JSONObject request) {
+    public ResponseEntity<?> sendCreateSecretaryVerificationToken(@RequestBody JSONObject request) throws MessagingException, IOException {
         try {
             String email = request.getAsString("email");
             if(authUserService.existAuthUser(email)){
                 throw  new UserAlreadyExistException(email+" is already exists..!");
             }
-            if(authUserService.checkRoleUnique(EnumRole.ROLE_SECRETARY)){
+            if(authUserService.checkRoleUnique(Role.ROLE_SECRETARY)){
                 throw new RoleException("This is unique role");
             }
             String tokenString = jwtUtils.generateTokenFromEmail(email);
-            Token token = tokenStoreService.storeToken(new Token(tokenString, EnumIssueType.FOR_INVITE_SECRETARY,"new reviewer request"));
+            Token token = tokenStoreService.storeToken(new Token(tokenString, IssueType.FOR_INVITE_SECRETARY,"new reviewer request"));
             JSONObject response = new JSONObject();
             response.put("token",token.getId());
+            //mailService.sendEmail("gsample590@gmail.com","Invitation from ERC", MailType.INVITE_SECRETARY);
             return new ResponseEntity<>(response,HttpStatus.OK);
         }catch (Exception e){
             e.printStackTrace();
@@ -138,16 +147,17 @@ public class AuthUserController {
         }
     }
     @PostMapping("/create-user/token")
-    public ResponseEntity<?> sendCreateUserVerificationToken(@RequestBody JSONObject request) {
+    public ResponseEntity<?> sendCreateUserVerificationToken(@RequestBody JSONObject request) throws MessagingException, IOException {
         try {
             String email = request.getAsString("email");
             if(authUserService.existAuthUser(email)){
                 throw  new UserAlreadyExistException(email+" is already exists..!");
             }
             String tokenString = jwtUtils.generateTokenFromEmail(request.getAsString("email"));
-            Token token = tokenStoreService.storeToken(new Token(tokenString, EnumIssueType.FOR_EMAIL_VERIFICATION,"new user request"));
+            Token token = tokenStoreService.storeToken(new Token(tokenString, IssueType.FOR_EMAIL_VERIFICATION,"new user request"));
             JSONObject response = new JSONObject();
             response.put("token",token.getId());
+            //mailService.sendEmail("gsample590@gmail.com","Complete the sign up process to ERC", MailType.MAIL_VERIFY);
             return new ResponseEntity<>(response,HttpStatus.OK);
         }catch (Exception e){
             e.printStackTrace();
@@ -250,7 +260,7 @@ public class AuthUserController {
                 throw new EmailEqualException("Old email and new email are same");
             }
             String tokenString = jwtUtils.generateTokenFromUpdateEmail(jwtUtils.getUserIdFromRequest(), request);
-            Token token = tokenStoreService.storeToken(new Token(tokenString, EnumIssueType.FOR_EMAIL_UPDATE, authUser.getId()));
+            Token token = tokenStoreService.storeToken(new Token(tokenString, IssueType.FOR_EMAIL_UPDATE, authUser.getId()));
             JSONObject response = new JSONObject();
             response.put("token",token.getId());
             return new ResponseEntity<>(response,HttpStatus.OK);
@@ -261,13 +271,14 @@ public class AuthUserController {
     }
 
     @PostMapping("/update/password/forgot/token")
-    public ResponseEntity<?> sendForgotPasswordVerificationToken(@RequestBody JSONObject request) {
+    public ResponseEntity<?> sendForgotPasswordVerificationToken(@RequestBody JSONObject request) throws MessagingException, IOException {
         try {
             AuthUser authUser = authUserService.getAuthUserByEmail(request.getAsString("email"));
             String tokenString = jwtUtils.generateTokenFromEmail(authUser.getEmail());
-            Token token = tokenStoreService.storeToken(new Token(tokenString, EnumIssueType.FOR_FORGOT_PASSWORD, authUser.getId()));
+            Token token = tokenStoreService.storeToken(new Token(tokenString, IssueType.FOR_FORGOT_PASSWORD, authUser.getId()));
             JSONObject response = new JSONObject();
             response.put("token",token.getId());
+            //mailService.sendEmail("gsample590@gmail.com","Reset your ERC password", MailType.FORGOT_PASSWORD);
             return new ResponseEntity<>(response,HttpStatus.OK);
         }catch (Exception e){
             e.printStackTrace();
@@ -281,7 +292,7 @@ public class AuthUserController {
             if(id == null || !tokenStoreService.exists(id)){
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
-            String token = tokenStoreService.getTokenByIdAndIssueFor(id,EnumIssueType.FOR_FORGOT_PASSWORD).getToken();
+            String token = tokenStoreService.getTokenByIdAndIssueFor(id, IssueType.FOR_FORGOT_PASSWORD).getToken();
             String email = jwtUtils.generateEmailFromToken(token);
             authUserService.forgotPassword(email,request);
             tokenStoreService.deleteToken(token);
@@ -298,7 +309,7 @@ public class AuthUserController {
             if(id == null){
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
-            String token = tokenStoreService.getTokenByIdAndIssueFor(id,EnumIssueType.FOR_EMAIL_UPDATE).getToken();
+            String token = tokenStoreService.getTokenByIdAndIssueFor(id, IssueType.FOR_EMAIL_UPDATE).getToken();
             UpdateEmailRequest request = jwtUtils.generateUpdateEmailRequestFromToken(token);
             authUserService.updateEmail(request);
             tokenStoreService.deleteToken(token);
@@ -319,9 +330,10 @@ public class AuthUserController {
     }
 
     @PostMapping("/update/roles")
-    public ResponseEntity<?> updateRoles(@RequestBody UpdateRoleRequest request){
+    public ResponseEntity<?> updateRoles(@RequestBody UpdateRoleRequest request) throws MessagingException, IOException {
         try {
             authUserService.updateRoles(request.getRoles(),jwtUtils.getUserIdFromRequest());
+            //mailService.sendEmail("gsample590@gmail.com","Updated privileges on ERC", MailType.ROLE_CHANGE);
             return new ResponseEntity<>(jwtUtils.getUserIdFromRequest(),HttpStatus.OK);
         }catch (Exception e){
             throw e;
@@ -340,7 +352,7 @@ public class AuthUserController {
         }
     }
 
-    @PostMapping("/current-user")
+    @GetMapping("/current-user")
     public ResponseEntity<?> getCurrentUser(){
         try {
             AuthUser authUser = authUserService.getById(jwtUtils.getUserIdFromRequest());
