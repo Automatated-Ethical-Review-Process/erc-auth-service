@@ -1,10 +1,8 @@
 package com.g7.ercauthservice.service.impl;
 
 import com.g7.ercauthservice.entity.AuthUser;
-import com.g7.ercauthservice.entity.Role;
 import com.g7.ercauthservice.entity.Token;
-import com.g7.ercauthservice.enums.EnumIssueType;
-import com.g7.ercauthservice.enums.EnumRole;
+import com.g7.ercauthservice.enums.Role;
 import com.g7.ercauthservice.exception.EmailEqualException;
 import com.g7.ercauthservice.exception.PasswordMatchingException;
 import com.g7.ercauthservice.exception.RoleException;
@@ -21,10 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -121,13 +117,13 @@ public class AuthUserServiceImpl implements AuthUserService {
     public void updateRoles(Set<String> roles,String id) {
         AuthUser authUser = userRepository.findById(id).get();
         if(1 <= getRoles(roles).size() && getRoles(roles).size()<5){
-            Set<Role> enumRoles = getRoles(roles);
-            for (Role role:enumRoles) {
-                if(checkRoleUnique(role.getName()) && role.getName()==EnumRole.ROLE_CLERK){
+            Set<com.g7.ercauthservice.entity.Role> enumRoles = getRoles(roles);
+            for (com.g7.ercauthservice.entity.Role role:enumRoles) {
+                if(checkRoleUnique(role.getName()) && role.getName()== Role.ROLE_CLERK){
                     throw new RoleException("This is unique role CLERK");
-                }else if(checkRoleUnique(role.getName()) && role.getName()==EnumRole.ROLE_SECRETARY){
+                }else if(checkRoleUnique(role.getName()) && role.getName()== Role.ROLE_SECRETARY){
                     throw new RoleException("This is unique role SECRETARY");
-                }else if(checkRoleUnique(role.getName()) && role.getName()==EnumRole.ROLE_ADMIN){
+                }else if(checkRoleUnique(role.getName()) && role.getName()== Role.ROLE_ADMIN){
                     throw new RoleException("This is unique role ADMIN");
                 }
             }
@@ -170,38 +166,38 @@ public class AuthUserServiceImpl implements AuthUserService {
         userRepository.save(authUser);
     }
 
-    public Set<Role> getRoles(Set<String> strRoles){
-        Set<Role> roles = new HashSet<>();
+    public Set<com.g7.ercauthservice.entity.Role> getRoles(Set<String> strRoles){
+        Set<com.g7.ercauthservice.entity.Role> roles = new HashSet<>();
         strRoles.forEach(role ->{
             switch (role){
                 case "admin":
-                    Role superAdminRole = roleRepository.findByName(EnumRole.ROLE_ADMIN)
+                    com.g7.ercauthservice.entity.Role superAdminRole = roleRepository.findByName(Role.ROLE_ADMIN)
                             .orElseThrow(()-> new RuntimeException("Error: Role is not found."));
                     roles.add(superAdminRole);
                     break;
                 case "secretary":
-                    Role secretaryRole = roleRepository.findByName(EnumRole.ROLE_SECRETARY)
+                    com.g7.ercauthservice.entity.Role secretaryRole = roleRepository.findByName(Role.ROLE_SECRETARY)
                             .orElseThrow(()-> new RuntimeException("Error: Role is not found."));
                     roles.add(secretaryRole);
                     break;
 
                 case "clerk":
-                    Role clerkRole = roleRepository.findByName(EnumRole.ROLE_CLERK)
+                    com.g7.ercauthservice.entity.Role clerkRole = roleRepository.findByName(Role.ROLE_CLERK)
                             .orElseThrow(()-> new RuntimeException("Error: Role is not found."));
                     roles.add(clerkRole);
                     break;
                 case "internal_reviewer":
-                    Role ireviewerRole = roleRepository.findByName(EnumRole.ROLE_INTERNAL_REVIEWER)
+                    com.g7.ercauthservice.entity.Role ireviewerRole = roleRepository.findByName(Role.ROLE_INTERNAL_REVIEWER)
                             .orElseThrow(()-> new RuntimeException("Error: Role is not found."));
                     roles.add(ireviewerRole);
                     break;
                 case "external_reviewer":
-                    Role ereviewerRole = roleRepository.findByName(EnumRole.ROLE_EXTERNAL_REVIEWER)
+                    com.g7.ercauthservice.entity.Role ereviewerRole = roleRepository.findByName(Role.ROLE_EXTERNAL_REVIEWER)
                             .orElseThrow(()-> new RuntimeException("Error: Role is not found."));
                     roles.add(ereviewerRole);
                     break;
                 case "applicant":
-                    Role applicantRole = roleRepository.findByName(EnumRole.ROLE_APPLICANT)
+                    com.g7.ercauthservice.entity.Role applicantRole = roleRepository.findByName(Role.ROLE_APPLICANT)
                             .orElseThrow(()-> new RuntimeException("Error: Role is not found."));
                     roles.add(applicantRole);
                     break;
@@ -239,7 +235,7 @@ public class AuthUserServiceImpl implements AuthUserService {
         return roles;
     }
 
-    public Set<String> setRoles(Set<EnumRole> strRoles){
+    public Set<String> setRoles(Set<Role> strRoles){
         Set<String> roles = new HashSet<>();
         strRoles.forEach(role ->{
             switch (role){
@@ -265,7 +261,7 @@ public class AuthUserServiceImpl implements AuthUserService {
         return roles;
     }
 
-    public Boolean checkRoleUnique(EnumRole role){
+    public Boolean checkRoleUnique(Role role){
         return userRepository.checkRoleUnique(roleRepository.findByName(role).get().getId());
     }
 }

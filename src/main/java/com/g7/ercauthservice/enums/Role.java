@@ -1,6 +1,6 @@
 package com.g7.ercauthservice.enums;
 
-public enum EnumRole {
+public enum Role {
     ROLE_APPLICANT,
 
     ROLE_INTERNAL_REVIEWER,

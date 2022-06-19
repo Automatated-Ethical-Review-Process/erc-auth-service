@@ -1,16 +1,13 @@
 package com.g7.ercauthservice.service.impl;
 
 import com.g7.ercauthservice.entity.AuthUser;
-import com.g7.ercauthservice.entity.Role;
-import com.g7.ercauthservice.enums.EnumRole;
-import com.g7.ercauthservice.model.AuthUserCreateRequest;
+import com.g7.ercauthservice.enums.Role;
 import com.g7.ercauthservice.repository.AuthUserRepository;
 import com.g7.ercauthservice.repository.RoleRepository;
 import com.g7.ercauthservice.service.DefaultDataService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -37,12 +34,12 @@ public class DefaultDataServiceImpl implements DefaultDataService {
     @PostConstruct
     public void insertRolesToDB() {
         if(roleRepository.findAll().isEmpty() && roleRepository.count() !=6){
-            Role role1 = new Role(EnumRole.ROLE_APPLICANT);
-            Role role2 = new Role(EnumRole.ROLE_INTERNAL_REVIEWER);
-            Role role3 = new Role(EnumRole.ROLE_EXTERNAL_REVIEWER);
-            Role role4 = new Role(EnumRole.ROLE_CLERK);
-            Role role5 = new Role(EnumRole.ROLE_SECRETARY);
-            Role role6 = new Role(EnumRole.ROLE_ADMIN);
+            com.g7.ercauthservice.entity.Role role1 = new com.g7.ercauthservice.entity.Role(Role.ROLE_APPLICANT);
+            com.g7.ercauthservice.entity.Role role2 = new com.g7.ercauthservice.entity.Role(Role.ROLE_INTERNAL_REVIEWER);
+            com.g7.ercauthservice.entity.Role role3 = new com.g7.ercauthservice.entity.Role(Role.ROLE_EXTERNAL_REVIEWER);
+            com.g7.ercauthservice.entity.Role role4 = new com.g7.ercauthservice.entity.Role(Role.ROLE_CLERK);
+            com.g7.ercauthservice.entity.Role role5 = new com.g7.ercauthservice.entity.Role(Role.ROLE_SECRETARY);
+            com.g7.ercauthservice.entity.Role role6 = new com.g7.ercauthservice.entity.Role(Role.ROLE_ADMIN);
             roleRepository.save(role1);
             roleRepository.save(role2);
             roleRepository.save(role3);
