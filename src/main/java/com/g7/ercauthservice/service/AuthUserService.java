@@ -19,5 +19,6 @@ public interface AuthUserService {
     Boolean existAuthUser(String Email);
     AuthUser getAuthUserByEmail(String email);
     void forgotPassword(String email, ForgotPasswordRequest request);
+    void passwordCheck(String id,String password);
 
 }

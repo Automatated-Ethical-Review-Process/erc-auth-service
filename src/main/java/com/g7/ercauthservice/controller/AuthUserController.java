@@ -329,6 +329,16 @@ public class AuthUserController {
         }
     }
 
+    @PostMapping("/check/password")
+    public ResponseEntity<?> checkPassword(@RequestBody CheckPasswordRequest request){
+        try {
+            authUserService.passwordCheck(jwtUtils.getUserIdFromRequest(), request.getPassword());
+            return new ResponseEntity<>(HttpStatus.ACCEPTED);
+        }catch (Exception e){
+            throw e;
+        }
+    }
+
     @PostMapping("/update/roles")
     public ResponseEntity<?> updateRoles(@RequestBody UpdateRoleRequest request) throws MessagingException, IOException {
         try {

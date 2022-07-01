@@ -77,6 +77,17 @@ public class AuthUserServiceImpl implements AuthUserService {
     }
 
     @Override
+    public void passwordCheck(String id, String password) {
+        try {
+            AuthUser authUser = userRepository.findById(id).get();
+            if(!passwordEncoder.matches(password, authUser.getPassword())){
+                throw new PasswordMatchingException("Password is wrong");
+            }
+        }catch (Exception e){
+            throw e;
+        }
+    }
+    @Override
     public void updatePassword(String id, String oldPassword, String newPassword) {
         try {
             AuthUser authUser = userRepository.findById(id).get();
@@ -165,6 +176,7 @@ public class AuthUserServiceImpl implements AuthUserService {
         authUser.setPassword(passwordEncoder.encode(request.getPassword()));
         userRepository.save(authUser);
     }
+
 
     public Set<com.g7.ercauthservice.entity.Role> getRoles(Set<String> strRoles){
         Set<com.g7.ercauthservice.entity.Role> roles = new HashSet<>();

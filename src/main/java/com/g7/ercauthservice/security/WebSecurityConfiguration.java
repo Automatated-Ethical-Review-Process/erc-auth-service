@@ -77,6 +77,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST,"/api/auth/request/validate").permitAll()
                 .antMatchers(HttpMethod.POST,"/api/auth/token/validate").permitAll()
                 .antMatchers(HttpMethod.GET,"/api/auth/current-user").authenticated()
+                .antMatchers(HttpMethod.POST,"/api/auth/check/password").authenticated()
                 .antMatchers(HttpMethod.POST,"/api/auth/update/email/send/token").authenticated()
                 .antMatchers(HttpMethod.POST,"/api/auth/update/password").authenticated()
                 .antMatchers(HttpMethod.POST,"/api/auth/update/roles").authenticated()
