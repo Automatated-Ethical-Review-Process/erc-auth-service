@@ -1,12 +1,14 @@
 package com.g7.ercauthservice.service.impl;
 
 import com.g7.ercauthservice.entity.AuthUser;
+import com.g7.ercauthservice.entity.RefreshToken;
 import com.g7.ercauthservice.entity.Token;
 import com.g7.ercauthservice.enums.Role;
 import com.g7.ercauthservice.exception.EmailEqualException;
 import com.g7.ercauthservice.exception.PasswordMatchingException;
 import com.g7.ercauthservice.exception.RoleException;
 import com.g7.ercauthservice.model.AuthUserCreateRequest;
+import com.g7.ercauthservice.model.AuthUserSignInRequest;
 import com.g7.ercauthservice.model.ForgotPasswordRequest;
 import com.g7.ercauthservice.model.UpdateEmailRequest;
 import com.g7.ercauthservice.repository.AuthUserRepository;
@@ -15,7 +17,13 @@ import com.g7.ercauthservice.security.JwtUtils;
 import com.g7.ercauthservice.service.AuthUserService;
 import com.g7.ercauthservice.service.RefreshTokenService;
 import lombok.extern.slf4j.Slf4j;
+import net.minidev.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +32,7 @@ import javax.transaction.Transactional;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -39,8 +48,15 @@ public class AuthUserServiceImpl implements AuthUserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    private final AuthenticationManager authenticationManager;
+
     @Autowired
     private JwtUtils jwtUtils;
+
+    public AuthUserServiceImpl(AuthenticationManager authenticationManager) {
+        this.authenticationManager = authenticationManager;
+    }
+
     @Override
     public AuthUser add(AuthUserCreateRequest request, Token token) {
         AuthUser authUser = new AuthUser();
@@ -87,6 +103,28 @@ public class AuthUserServiceImpl implements AuthUserService {
             throw e;
         }
     }
+
+    @Override
+    public JSONObject generateToken(AuthUserSignInRequest request) {
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.getEmail(),request.getPassword()));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        String jwt = jwtUtils.generateJwtToken(userDetails);
+        List<String> roles = userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+
+        refreshTokenService.deleteExpiredRefreshTokenByAuthUser(userDetails.getId());
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId(),jwt);
+
+        JSONObject body = new JSONObject();
+        body.put("access",jwt);
+        body.put("refresh",refreshToken.getToken());
+        body.put("roles",setRoles(roles));
+        return body;
+    }
+
     @Override
     public void updatePassword(String id, String oldPassword, String newPassword) {
         try {

@@ -22,11 +22,7 @@ import net.minidev.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.WebUtils;
 
@@ -49,7 +45,6 @@ public class AuthUserController {
 
     @Autowired
     private AuthUserServiceImpl authUserService;
-    private final AuthenticationManager authenticationManager;
     @Autowired
     private JwtUtils jwtUtils;
     @Autowired
@@ -58,10 +53,6 @@ public class AuthUserController {
     private TokenStoreService tokenStoreService;
     @Autowired
     private MailService mailService;
-
-    public AuthUserController(AuthenticationManager authenticationManager) {
-        this.authenticationManager = authenticationManager;
-    }
 
     private  Cookie cookie(String name, String value, int MaxAge){
         Cookie cookie = new  Cookie(name, value);
@@ -166,16 +157,21 @@ public class AuthUserController {
     }
 
     @PostMapping("/create-user")
-    public ResponseEntity<?> createUser(@RequestBody AuthUserCreateRequest request,@RequestParam String id) throws Exception {
+    public ResponseEntity<?> createUser(@RequestBody AuthUserCreateRequest request,@RequestParam String id,HttpServletResponse response) throws Exception {
+        AuthUser authUser =  null;
         try {
             if(id == null || !tokenStoreService.exists(id)){
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
             Token token = tokenStoreService.getTokenByIdAndIssueFor(id);
-            AuthUser authUser = authUserService.add(request,token);
+            authUser = authUserService.add(request,token);
+            AuthUserSignInRequest signInRequest = new AuthUserSignInRequest(authUser.getEmail(),request.getPassword());
+            JSONObject body = authUserService.generateToken(signInRequest);
             tokenStoreService.deleteToken(token.getToken());
+            response.addCookie(cookie("access", body.getAsString("access"), 3600));
+            response.addCookie(cookie("refresh", body.getAsString("refresh"), 3600*24));
             log.info("user created >> {}",authUser.getEmail());
-            return new ResponseEntity<>(HttpStatus.CREATED);
+            return new ResponseEntity<>(body,HttpStatus.CREATED);
         }catch (Exception e){
             e.printStackTrace();
             log.error("error user created >> invalid token or process failed");
@@ -185,30 +181,16 @@ public class AuthUserController {
 
     @PostMapping(value = "/token/generate")
     public ResponseEntity<?> generateToken(@RequestBody AuthUserSignInRequest request, HttpServletResponse response){
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(),request.getPassword()));
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        String jwt = jwtUtils.generateJwtToken(userDetails);
-        List<String> roles = userDetails.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toList());
-
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId(),jwt);
-
-        JSONObject body = new JSONObject();
-        body.put("access",jwt);
-        body.put("refresh",refreshToken.getToken());
-        body.put("roles",authUserService.setRoles(roles));
-
-        response.addCookie(cookie("access",jwt,3600));
-        response.addCookie(cookie("refresh",refreshToken.getToken(),3600*24));
+        JSONObject body = authUserService.generateToken(request);
+        response.addCookie(cookie("access", body.getAsString("access"), 3600));
+        response.addCookie(cookie("refresh", body.getAsString("refresh"), 3600*24));
         return new ResponseEntity<>(body, HttpStatus.OK);
     }
 
     @PostMapping("/token/refresh")
     public ResponseEntity<?> refreshToken(HttpServletRequest request,HttpServletResponse httpServletResponse) {
         Cookie name = WebUtils.getCookie(request, "refresh");
+        System.out.println(name);
         String requestRefreshToken = name != null ? name.getValue() : null;//request.getToken();
         return refreshTokenService.findByToken(requestRefreshToken)
                 .map(refreshTokenService::verifyExpiration)
