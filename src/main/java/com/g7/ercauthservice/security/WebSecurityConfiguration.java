@@ -81,6 +81,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST,"/api/auth/update/email/send/token").authenticated()
                 .antMatchers(HttpMethod.POST,"/api/auth/update/password").authenticated()
                 .antMatchers(HttpMethod.POST,"/api/auth/update/roles").authenticated()
+                .antMatchers(HttpMethod.POST,"/api/auth/logout").authenticated()
                 .antMatchers("/**").denyAll();
 
         http.addFilterBefore(authTokenFilter(), UsernamePasswordAuthenticationFilter.class);
