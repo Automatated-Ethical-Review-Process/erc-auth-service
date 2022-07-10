@@ -12,10 +12,10 @@ import java.util.Set;
 
 public interface AuthUserService {
 
-    AuthUser add(AuthUserCreateRequest request, Token token);
+    AuthUser add(String password, Token token);
     void remove(String id);
     void updatePassword(String id,String oldPassword,String newPassword) throws Exception;
-    void updateEmail(UpdateEmailRequest request) throws Exception;
+    String updateEmail(UpdateEmailRequest request) throws Exception;
     void updateRoles(Set<String> roles,String id) throws Exception;
     AuthUser getById(String id);
     Boolean existAuthUser(String Email);
@@ -24,5 +24,7 @@ public interface AuthUserService {
     void passwordCheck(String id,String password);
 
     JSONObject generateToken(AuthUserSignInRequest request);
+
+    void updateEmailRollBack(UpdateEmailRequest request);
 
 }

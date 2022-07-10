@@ -1,5 +1,6 @@
 package com.g7.ercauthservice.controller;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.g7.ercauthservice.entity.AuthUser;
 import com.g7.ercauthservice.entity.RefreshToken;
 import com.g7.ercauthservice.entity.Token;
@@ -19,19 +20,24 @@ import com.g7.ercauthservice.service.impl.UserDetailsImpl;
 import com.g7.ercauthservice.utility.MailService;
 import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONObject;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.WebUtils;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -56,6 +62,11 @@ public class AuthUserController {
     @Autowired
     private MailService mailService;
 
+    @Value("${data.api.signUp}")
+    private String userInfoAddURI;
+    @Value("${data.api.email}")
+    private String userInfoEmailUpdateURI;
+
     private void addCookie(HttpServletResponse response, String name, String value, int maxAge) {
         ResponseCookie cookie = ResponseCookie.from(name, value)
             .httpOnly(true)
@@ -70,10 +81,25 @@ public class AuthUserController {
 
     @GetMapping(value = "/test") //validate
    // @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> test() throws MessagingException, IOException {
+    public ResponseEntity<?> test(@RequestBody @Valid AuthUserCreateRequest request) {
         try {
-            mailService.sendEmail("gsample590@gmail.com","Invitation from ERC", MailType.INVITE_CLERK);
-            return new ResponseEntity<>(HttpStatus.ACCEPTED);
+            UserInfo userInfo =  new UserInfo();
+            BeanUtils.copyProperties(request,userInfo);
+
+            RestTemplate restTemplate = new RestTemplate();
+            HttpHeaders headers =  new HttpHeaders();
+            String token = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiI1M2Q1M2E2My1mN2RkLTQ2NDgtOWY1OC04N2MyZDk1ZjYxYzgyMDEyNzQ5MzAxIiwiaWF0IjoxNjU3Mz" +
+                    "g5NTU5LCJleHAiOjE2NTc0NzU5NTl9.sZUee3GpmfpHnZPHj3oRLrh2n5mYEWy8BdYSYuTITbZaeR8OeCdWKO-jJKTj2UQUudXIzMuqgWiImuaj-OUlnw";
+
+            headers.add("Authorization","Bearer "+token);
+
+            HttpEntity<String> dataRequest = new HttpEntity<>(headers);
+            String url1 = "http://localhost:8081/api/data/test";
+            System.out.println(dataRequest);
+            ResponseEntity<?> response = restTemplate.exchange(url1, HttpMethod.GET,dataRequest,String.class);
+            System.out.println(response);
+
+            return new ResponseEntity<>(userInfo,HttpStatus.ACCEPTED);
         }catch (Exception e){
             e.printStackTrace();
             throw e;
@@ -169,9 +195,30 @@ public class AuthUserController {
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
             Token token = tokenStoreService.getTokenByIdAndIssueFor(id);
-            authUser = authUserService.add(request,token);
+            authUser = authUserService.add(request.getPassword(),token);
             AuthUserSignInRequest signInRequest = new AuthUserSignInRequest(authUser.getEmail(),request.getPassword());
             JSONObject body = authUserService.generateToken(signInRequest);
+
+            UserInfo userInfo =  new UserInfo();
+            BeanUtils.copyProperties(request,userInfo);
+            userInfo.setEmail(authUser.getEmail());
+            userInfo.setId(authUser.getId());
+
+            RestTemplate restTemplate = new RestTemplate();
+            HttpHeaders headers =  new HttpHeaders();
+            headers.add("Authorization","Bearer "+body.getAsString("access"));
+
+            HttpEntity<UserInfo> dataRequest = new HttpEntity<>(userInfo,headers);
+            System.out.println(dataRequest);
+            ResponseEntity<?> dataResponse = restTemplate.exchange(userInfoAddURI, HttpMethod.POST,dataRequest,String.class);
+
+            if(dataResponse.getStatusCodeValue() !=201 ){
+                if(authUserService.existAuthUser(authUser.getEmail())){
+                    authUserService.remove(authUser.getId());
+                    throw new Exception("User not created email : "+authUser.getEmail());
+                }
+            }
+
             tokenStoreService.deleteToken(token.getToken());
             addCookie(response, "access", body.getAsString("access"), 3600);
             addCookie(response, "refresh", body.getAsString("refresh"), 3600*24);
@@ -180,6 +227,9 @@ public class AuthUserController {
         }catch (Exception e){
             e.printStackTrace();
             log.error("error user created >> invalid token or process failed");
+            if(authUserService.existAuthUser(authUser.getEmail())){
+                authUserService.remove(authUser.getId());
+            }
             throw e;
         }
     }
@@ -290,23 +340,43 @@ public class AuthUserController {
         }
     }
 
-    @PostMapping("/update/email")
-    public ResponseEntity<?> updateEmail(@RequestParam String id) throws Exception {
+    @PutMapping("/update/email")
+    public ResponseEntity<?> updateEmail(@RequestParam String id,HttpServletRequest httpServletRequest) throws Exception {
+
+        UpdateEmailRequest request = null;
         try {
             if(id == null){
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
             String token = tokenStoreService.getTokenByIdAndIssueFor(id, IssueType.FOR_EMAIL_UPDATE).getToken();
-            UpdateEmailRequest request = jwtUtils.generateUpdateEmailRequestFromToken(token);
-            authUserService.updateEmail(request);
+            request = jwtUtils.generateUpdateEmailRequestFromToken(token);
+            String jwt = authUserService.updateEmail(request);
+
+
+            RestTemplate restTemplate = new RestTemplate();
+            HttpHeaders headers =  new HttpHeaders();
+            headers.add("Authorization","Bearer "+jwt);
+
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("email",request.getNewEmail());
+
+            HttpEntity<JSONObject> dataRequest = new HttpEntity<>(jsonObject,headers);
+            System.out.println(dataRequest);
+            ResponseEntity<?> dataResponse = restTemplate.exchange(userInfoEmailUpdateURI, HttpMethod.PUT,dataRequest,String.class);
+
+            if(dataResponse.getStatusCodeValue() !=200 ){
+                authUserService.updateEmailRollBack(request);
+                throw new Exception("Email not updated : old >> "+request.getOldEmail()+"new >> "+request.getNewEmail());
+            }
             tokenStoreService.deleteToken(token);
             return new ResponseEntity<>(request,HttpStatus.OK);
         }catch (Exception e){
+            authUserService.updateEmailRollBack(request);
             throw e;
         }
     }
 
-    @PostMapping("/update/password")
+    @PutMapping("/update/password")
     public ResponseEntity<?> updatePassword(@RequestBody UpdatePasswordRequest request){
         try {
             authUserService.updatePassword(jwtUtils.getUserIdFromRequest(), request.getOldPassword(), request.getNewPassword());
@@ -326,7 +396,7 @@ public class AuthUserController {
         }
     }
 
-    @PostMapping("/update/roles")
+    @PutMapping("/update/roles")
     public ResponseEntity<?> updateRoles(@RequestBody UpdateRoleRequest request) throws MessagingException, IOException {
         try {
             authUserService.updateRoles(request.getRoles(),jwtUtils.getUserIdFromRequest());

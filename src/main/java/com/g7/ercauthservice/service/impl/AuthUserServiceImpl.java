@@ -58,10 +58,11 @@ public class AuthUserServiceImpl implements AuthUserService {
     }
 
     @Override
-    public AuthUser add(AuthUserCreateRequest request, Token token) {
+    public AuthUser add(String password, Token token) {
         AuthUser authUser = new AuthUser();
+
         authUser.setEmail(jwtUtils.generateEmailFromToken(token.getToken()));
-        authUser.setPassword(passwordEncoder.encode(request.getPassword()));
+        authUser.setPassword(passwordEncoder.encode(password));
         authUser.setIsLocked(true);
         authUser.setIsVerified(true);
         Set<String> roles = new HashSet<>();
@@ -126,6 +127,17 @@ public class AuthUserServiceImpl implements AuthUserService {
     }
 
     @Override
+    public void updateEmailRollBack(UpdateEmailRequest request) {
+        if(existAuthUser(request.getNewEmail())){
+            String oldEmail = request.getOldEmail();
+            String newEmail = request.getNewEmail();
+            request.setNewEmail(oldEmail);
+            request.setOldEmail(newEmail);
+            updateEmail(request);
+        }
+    }
+
+    @Override
     public void updatePassword(String id, String oldPassword, String newPassword) {
         try {
             AuthUser authUser = userRepository.findById(id).get();
@@ -144,7 +156,7 @@ public class AuthUserServiceImpl implements AuthUserService {
     }
 
     @Override
-    public void updateEmail(UpdateEmailRequest request) {
+    public String updateEmail(UpdateEmailRequest request) {
         String oldEmail = request.getOldEmail();
         String newEmail = request.getNewEmail();
         AuthUser authUser = userRepository.findById(request.getId()).get();
@@ -156,8 +168,10 @@ public class AuthUserServiceImpl implements AuthUserService {
                 throw new EmailEqualException("Email already exists");
             }
             authUser.setEmail(newEmail);
-            userRepository.save(authUser);
+            AuthUser authUser1 = userRepository.save(authUser);
+            System.out.println(authUser1.getId());
             refreshTokenService.deleteByUserId(authUser.getId());
+            return jwtUtils.generateTokenFromAuthUserId(authUser1.getId());
         }catch (Exception e){
             throw e;
         }
