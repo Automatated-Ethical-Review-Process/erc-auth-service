@@ -7,7 +7,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import org.springframework.web.util.WebUtils;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
 
@@ -44,12 +46,15 @@ public class JwtUtils {
         return Jwts.parser().setSigningKey(jwtSecret_auth).parseClaimsJws(token).getBody().getSubject();
     }
     private String parseJwt(HttpServletRequest request){
-        String authenticationHeader = request.getHeader("Authorization");
-
-        if(StringUtils.hasText(authenticationHeader) && authenticationHeader.startsWith("Bearer ")){
-            return authenticationHeader.substring(7);
-        }
-        return null;
+//        String authenticationHeader = request.getHeader("Authorization");
+//
+//        if(StringUtils.hasText(authenticationHeader) && authenticationHeader.startsWith("Bearer ")){
+//            return authenticationHeader.substring(7);
+//        }
+//        return null;
+        Cookie name = WebUtils.getCookie(request, "access");
+        //System.out.println(name.getValue());
+        return name.getValue();
     }
     public String getUserIdFromRequest(){
         return getUserIdFromJwtToken(parseJwt(request));

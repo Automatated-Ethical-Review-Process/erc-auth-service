@@ -28,6 +28,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -70,7 +71,7 @@ public class AuthUserController {
     private void addCookie(HttpServletResponse response, String name, String value, int maxAge) {
         ResponseCookie cookie = ResponseCookie.from(name, value)
             .httpOnly(true)
-            .secure(true)
+            .secure(false)
             .path("/")
             .maxAge(maxAge)
             .sameSite("None")
@@ -80,26 +81,26 @@ public class AuthUserController {
     }
 
     @GetMapping(value = "/test") //validate
-   // @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> test(@RequestBody @Valid AuthUserCreateRequest request) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> test() {
         try {
-            UserInfo userInfo =  new UserInfo();
-            BeanUtils.copyProperties(request,userInfo);
+//            UserInfo userInfo =  new UserInfo();
+//            BeanUtils.copyProperties(request,userInfo);
+//
+//            RestTemplate restTemplate = new RestTemplate();
+//            HttpHeaders headers =  new HttpHeaders();
+//            String token = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiI1M2Q1M2E2My1mN2RkLTQ2NDgtOWY1OC04N2MyZDk1ZjYxYzgyMDEyNzQ5MzAxIiwiaWF0IjoxNjU3Mz" +
+//                    "g5NTU5LCJleHAiOjE2NTc0NzU5NTl9.sZUee3GpmfpHnZPHj3oRLrh2n5mYEWy8BdYSYuTITbZaeR8OeCdWKO-jJKTj2UQUudXIzMuqgWiImuaj-OUlnw";
+//
+//            headers.add("Authorization","Bearer "+token);
+//
+//            HttpEntity<String> dataRequest = new HttpEntity<>(headers);
+//            String url1 = "http://localhost:8081/api/data/test";
+//            System.out.println(dataRequest);
+//            ResponseEntity<?> response = restTemplate.exchange(url1, HttpMethod.GET,dataRequest,String.class);
+//            System.out.println(response);
 
-            RestTemplate restTemplate = new RestTemplate();
-            HttpHeaders headers =  new HttpHeaders();
-            String token = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiI1M2Q1M2E2My1mN2RkLTQ2NDgtOWY1OC04N2MyZDk1ZjYxYzgyMDEyNzQ5MzAxIiwiaWF0IjoxNjU3Mz" +
-                    "g5NTU5LCJleHAiOjE2NTc0NzU5NTl9.sZUee3GpmfpHnZPHj3oRLrh2n5mYEWy8BdYSYuTITbZaeR8OeCdWKO-jJKTj2UQUudXIzMuqgWiImuaj-OUlnw";
-
-            headers.add("Authorization","Bearer "+token);
-
-            HttpEntity<String> dataRequest = new HttpEntity<>(headers);
-            String url1 = "http://localhost:8081/api/data/test";
-            System.out.println(dataRequest);
-            ResponseEntity<?> response = restTemplate.exchange(url1, HttpMethod.GET,dataRequest,String.class);
-            System.out.println(response);
-
-            return new ResponseEntity<>(userInfo,HttpStatus.ACCEPTED);
+            return new ResponseEntity<>("userInfo",HttpStatus.ACCEPTED);
         }catch (Exception e){
             e.printStackTrace();
             throw e;
@@ -207,6 +208,7 @@ public class AuthUserController {
             RestTemplate restTemplate = new RestTemplate();
             HttpHeaders headers =  new HttpHeaders();
             headers.add("Authorization","Bearer "+body.getAsString("access"));
+            headers.add("Cookie","access="+body.getAsString("access"));
 
             HttpEntity<UserInfo> dataRequest = new HttpEntity<>(userInfo,headers);
             System.out.println(dataRequest);
@@ -341,7 +343,7 @@ public class AuthUserController {
     }
 
     @PutMapping("/update/email")
-    public ResponseEntity<?> updateEmail(@RequestParam String id,HttpServletRequest httpServletRequest) throws Exception {
+    public ResponseEntity<?> updateEmail(@RequestParam String id) throws Exception {
 
         UpdateEmailRequest request = null;
         try {
@@ -356,12 +358,13 @@ public class AuthUserController {
             RestTemplate restTemplate = new RestTemplate();
             HttpHeaders headers =  new HttpHeaders();
             headers.add("Authorization","Bearer "+jwt);
+            headers.add("Cookie","access="+jwt);
 
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("email",request.getNewEmail());
 
             HttpEntity<JSONObject> dataRequest = new HttpEntity<>(jsonObject,headers);
-            System.out.println(dataRequest);
+            //System.out.println(dataRequest);
             ResponseEntity<?> dataResponse = restTemplate.exchange(userInfoEmailUpdateURI, HttpMethod.PUT,dataRequest,String.class);
 
             if(dataResponse.getStatusCodeValue() !=200 ){

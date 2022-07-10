@@ -9,12 +9,16 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.util.WebUtils;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class AuthTokenFilter extends OncePerRequestFilter {
@@ -36,7 +40,10 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         try{
-            String jwt = parseJwt(request);
+            //String jwt = parseJwt(request);
+            Cookie name = WebUtils.getCookie(request, "access");
+            //System.out.println(name.getValue());
+            String jwt = name != null ?name.getValue():null ;
 
             if(jwt != null && jwtUtils.validateJwtToken(jwt)){
 
@@ -52,6 +59,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             }
         }catch(Exception e){
+            e.printStackTrace();
             log.error("Cannot set user authentication: {}", e.getMessage());
         }
         filterChain.doFilter(request,response);
