@@ -20,7 +20,9 @@ import com.g7.ercauthservice.utility.MailService;
 import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
@@ -40,7 +42,7 @@ import java.util.stream.Collectors;
 @RestController
 @Slf4j
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = {"http://localhost:3000"},maxAge = 3600,allowCredentials = "true")
+@CrossOrigin(origins = {"https://localhost:3000"}, maxAge = 3600, allowCredentials = "true")
 public class AuthUserController {
 
     @Autowired
@@ -54,13 +56,16 @@ public class AuthUserController {
     @Autowired
     private MailService mailService;
 
-    private  Cookie cookie(String name, String value, int MaxAge){
-        Cookie cookie = new  Cookie(name, value);
-        cookie.setMaxAge(MaxAge);
-        cookie.setSecure(false);
-        cookie.setHttpOnly(true);
-        cookie.setPath("/");
-        return cookie;
+    private void addCookie(HttpServletResponse response, String name, String value, int maxAge) {
+        ResponseCookie cookie = ResponseCookie.from(name, value)
+            .httpOnly(true)
+            .secure(true)
+            .path("/")
+            .maxAge(maxAge)
+            .sameSite("None")
+            .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 
     @GetMapping(value = "/test") //validate
@@ -168,8 +173,8 @@ public class AuthUserController {
             AuthUserSignInRequest signInRequest = new AuthUserSignInRequest(authUser.getEmail(),request.getPassword());
             JSONObject body = authUserService.generateToken(signInRequest);
             tokenStoreService.deleteToken(token.getToken());
-            response.addCookie(cookie("access", body.getAsString("access"), 3600));
-            response.addCookie(cookie("refresh", body.getAsString("refresh"), 3600*24));
+            addCookie(response, "access", body.getAsString("access"), 3600);
+            addCookie(response, "refresh", body.getAsString("refresh"), 3600*24);
             log.info("user created >> {}",authUser.getEmail());
             return new ResponseEntity<>(body,HttpStatus.CREATED);
         }catch (Exception e){
@@ -182,8 +187,8 @@ public class AuthUserController {
     @PostMapping(value = "/token/generate")
     public ResponseEntity<?> generateToken(@RequestBody AuthUserSignInRequest request, HttpServletResponse response){
         JSONObject body = authUserService.generateToken(request);
-        response.addCookie(cookie("access", body.getAsString("access"), 3600));
-        response.addCookie(cookie("refresh", body.getAsString("refresh"), 3600*24));
+        addCookie(response, "access", body.getAsString("access"), 3600);
+        addCookie(response, "refresh", body.getAsString("refresh"), 3600*24);
         return new ResponseEntity<>(body, HttpStatus.OK);
     }
 
@@ -200,7 +205,7 @@ public class AuthUserController {
                     log.info("Successfully return new access token from refresh token");
                     JSONObject response = new JSONObject();
                     response.put("access",token);
-                    httpServletResponse.addCookie(cookie("access",token,3600));
+                    addCookie(httpServletResponse, "access", token, 3600);
                     return new ResponseEntity<>(response,HttpStatus.OK);
                 })
                 .orElseThrow(() ->{
@@ -365,8 +370,8 @@ public class AuthUserController {
     public ResponseEntity<?> logout(HttpServletResponse response){
         try {
             refreshTokenService.deleteByUserId(jwtUtils.getUserIdFromRequest());
-            response.addCookie(cookie("access",null,0));
-            response.addCookie(cookie("refresh",null,0));
+            addCookie(response, "access", null, 0);
+            addCookie(response, "refresh", null, 0);
             return new ResponseEntity<>(HttpStatus.OK);
         }catch (Exception e){
             throw e;
