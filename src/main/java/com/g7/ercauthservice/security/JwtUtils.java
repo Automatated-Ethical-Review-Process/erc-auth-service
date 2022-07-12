@@ -21,9 +21,11 @@ public class JwtUtils {
     @Value("${jwtSecret_auth}")
     private String jwtSecret_auth;
 
+    private final HttpServletRequest request;
+
     @Value("${jwtSecret_email}")
     private String jwtSecret_email;
-    private final HttpServletRequest request;
+
     @Value("${jwtExpirationMs}")
     private int jwtExpirationMs;
 

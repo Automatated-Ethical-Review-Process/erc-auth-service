@@ -68,6 +68,11 @@ public class AuthUserController {
     @Value("${data.api.email}")
     private String userInfoEmailUpdateURI;
 
+    @Value("${jwtExpirationMs}")
+    private int accessExpirationMs;
+
+    @Value("${jwtRefreshExpirationMs}")
+    private int refreshExpirationMs;
     private void addCookie(HttpServletResponse response, String name, String value, int maxAge) {
         ResponseCookie cookie = ResponseCookie.from(name, value)
             .httpOnly(true)
@@ -222,8 +227,8 @@ public class AuthUserController {
             }
 
             tokenStoreService.deleteToken(token.getToken());
-            addCookie(response, "access", body.getAsString("access"), 3600);
-            addCookie(response, "refresh", body.getAsString("refresh"), 3600*24);
+            addCookie(response, "access", body.getAsString("access"), accessExpirationMs/1000);
+            addCookie(response, "refresh", body.getAsString("refresh"), refreshExpirationMs/1000);
             log.info("user created >> {}",authUser.getEmail());
             return new ResponseEntity<>(body,HttpStatus.CREATED);
         }catch (Exception e){
@@ -239,8 +244,8 @@ public class AuthUserController {
     @PostMapping(value = "/token/generate")
     public ResponseEntity<?> generateToken(@RequestBody AuthUserSignInRequest request, HttpServletResponse response){
         JSONObject body = authUserService.generateToken(request);
-        addCookie(response, "access", body.getAsString("access"), 3600);
-        addCookie(response, "refresh", body.getAsString("refresh"), 3600*24);
+        addCookie(response, "access", body.getAsString("access"), accessExpirationMs/1000);
+        addCookie(response, "refresh", body.getAsString("refresh"), refreshExpirationMs/1000);
         return new ResponseEntity<>(body, HttpStatus.OK);
     }
 
@@ -383,7 +388,7 @@ public class AuthUserController {
     public ResponseEntity<?> updatePassword(@RequestBody UpdatePasswordRequest request){
         try {
             authUserService.updatePassword(jwtUtils.getUserIdFromRequest(), request.getOldPassword(), request.getNewPassword());
-            return new ResponseEntity<>(jwtUtils.getUserIdFromRequest(),HttpStatus.OK);
+            return new ResponseEntity<>(HttpStatus.OK);
         }catch (Exception e){
             throw e;
         }
@@ -404,7 +409,7 @@ public class AuthUserController {
         try {
             authUserService.updateRoles(request.getRoles(),jwtUtils.getUserIdFromRequest());
             //mailService.sendEmail("gsample590@gmail.com","Updated privileges on ERC", MailType.ROLE_CHANGE);
-            return new ResponseEntity<>(jwtUtils.getUserIdFromRequest(),HttpStatus.OK);
+            return new ResponseEntity<>(HttpStatus.OK);
         }catch (Exception e){
             throw e;
         }
@@ -431,6 +436,7 @@ public class AuthUserController {
                     .map(GrantedAuthority::getAuthority)
                     .collect(Collectors.toList());
             JSONObject body = new JSONObject();
+            body.put("id",authUser.getId());
             body.put("email",authUser.getEmail());
             body.put("roles",authUserService.setRoles(roles));
             return new ResponseEntity<>(body,HttpStatus.OK);
