@@ -52,6 +52,7 @@ public class TokenStoreServiceImpl implements TokenStoreService {
 
     @Override
     public Token storeToken(Token token) {
+        tokenRepository.deleteTokenByUserIdAndIssueFor(token.getUserId(),token.getIssueFor());
         return tokenRepository.save(token);
     }
 
