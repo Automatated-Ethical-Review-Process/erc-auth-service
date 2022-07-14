@@ -367,7 +367,7 @@ public class AuthUserController {
             String email = jwtUtils.generateEmailFromToken(token);
             authUserService.forgotPassword(email,request);
             tokenStoreService.deleteToken(token);
-            return new ResponseEntity<>(email,HttpStatus.OK);
+            return new ResponseEntity<>(HttpStatus.OK);
         }catch (Exception e){
             e.printStackTrace();
             throw e;
