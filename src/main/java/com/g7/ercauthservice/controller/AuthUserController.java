@@ -29,7 +29,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.WebUtils;
@@ -67,16 +69,16 @@ public class AuthUserController {
     private String userInfoAddURI;
     @Value("${data.api.email}")
     private String userInfoEmailUpdateURI;
-
     @Value("${jwtExpirationMs}")
     private int accessExpirationMs;
-
     @Value("${jwtRefreshExpirationMs}")
     private int refreshExpirationMs;
+    @Value("${cookie.secure}")
+    private boolean secure;
     private void addCookie(HttpServletResponse response, String name, String value, int maxAge) {
         ResponseCookie cookie = ResponseCookie.from(name, value)
             .httpOnly(true)
-            .secure(true)
+            .secure(secure)
             .path("/")
             .maxAge(maxAge)
             .sameSite("None")
@@ -241,12 +243,37 @@ public class AuthUserController {
         }
     }
 
-    @PostMapping(value = "/token/generate")
+
+    @PostMapping( "/token/generate")
     public ResponseEntity<?> generateToken(@RequestBody AuthUserSignInRequest request, HttpServletResponse response){
         JSONObject body = authUserService.generateToken(request);
         addCookie(response, "access", body.getAsString("access"), accessExpirationMs/1000);
         addCookie(response, "refresh", body.getAsString("refresh"), refreshExpirationMs/1000);
         return new ResponseEntity<>(body, HttpStatus.OK);
+    }
+
+    @PutMapping("/user/enable/{id}")
+    public ResponseEntity<?> changeEnableStateByUserId(@PathVariable String id){
+        authUserService.changeEnableState(id);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PutMapping("/user/enable")
+    public ResponseEntity<?> changeEnableState(){
+        authUserService.changeEnableState(jwtUtils.getUserIdFromRequest());
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PutMapping("/user/lock/{id}")
+    public ResponseEntity<?> changeLockStateByUserId(@PathVariable String id){
+        authUserService.changeLockState(id);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PutMapping("/user/verified/{id}")
+    public ResponseEntity<?> changeVerifiedStateByUserId(@PathVariable String id){
+        authUserService.changeVerifiedState(id);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PostMapping("/token/refresh")
@@ -364,12 +391,11 @@ public class AuthUserController {
             HttpHeaders headers =  new HttpHeaders();
             headers.add("Authorization","Bearer "+jwt);
             headers.add("Cookie","access="+jwt);
-
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("email",request.getNewEmail());
 
             HttpEntity<JSONObject> dataRequest = new HttpEntity<>(jsonObject,headers);
-            //System.out.println(dataRequest);
+            System.out.println(dataRequest);
             ResponseEntity<?> dataResponse = restTemplate.exchange(userInfoEmailUpdateURI, HttpMethod.PUT,dataRequest,String.class);
 
             if(dataResponse.getStatusCodeValue() !=200 ){

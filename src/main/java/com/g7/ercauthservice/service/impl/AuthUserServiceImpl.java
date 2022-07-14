@@ -65,6 +65,7 @@ public class AuthUserServiceImpl implements AuthUserService {
         authUser.setPassword(passwordEncoder.encode(password));
         authUser.setIsLocked(true);
         authUser.setIsVerified(true);
+        authUser.setIsEnable(true);
         Set<String> roles = new HashSet<>();
         switch (token.getIssueFor()){
             case FOR_INVITE_REVIEWER:
@@ -123,6 +124,7 @@ public class AuthUserServiceImpl implements AuthUserService {
         body.put("access",jwt);
         body.put("refresh",refreshToken.getToken());
         body.put("roles",setRoles(roles));
+        body.put("verified",userDetails.getIsVerified());
         return body;
     }
 
@@ -135,6 +137,24 @@ public class AuthUserServiceImpl implements AuthUserService {
             request.setOldEmail(newEmail);
             updateEmail(request);
         }
+    }
+
+    @Override
+    public void changeEnableState(String id) {
+        AuthUser authUser = userRepository.findById(id).get();
+        authUser.setIsEnable(!authUser.getIsEnable());
+    }
+
+    @Override
+    public void changeLockState(String id) {
+        AuthUser authUser = userRepository.findById(id).get();
+        authUser.setIsLocked(!authUser.getIsLocked());
+    }
+
+    @Override
+    public void changeVerifiedState(String id) {
+        AuthUser authUser = userRepository.findById(id).get();
+        authUser.setIsVerified(!authUser.getIsVerified());
     }
 
     @Override

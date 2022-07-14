@@ -40,6 +40,9 @@ public class AuthUser {
     @Column(name = "is_locked",nullable = false)
     private Boolean isLocked;
 
+    @Column(name = "is_enable",nullable = false)
+    private Boolean isEnable;
+
     @Column(name = "created_date",nullable = false)
     private Instant createdDate=Instant.now();
 

@@ -22,9 +22,11 @@ public interface AuthUserService {
     AuthUser getAuthUserByEmail(String email);
     void forgotPassword(String email, ForgotPasswordRequest request);
     void passwordCheck(String id,String password);
-
     JSONObject generateToken(AuthUserSignInRequest request);
-
     void updateEmailRollBack(UpdateEmailRequest request);
+
+    void changeEnableState(String id);
+    void changeLockState(String id);
+    void changeVerifiedState(String id);
 
 }

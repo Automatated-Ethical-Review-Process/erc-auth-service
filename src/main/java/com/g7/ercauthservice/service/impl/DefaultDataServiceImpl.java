@@ -47,13 +47,14 @@ public class DefaultDataServiceImpl implements DefaultDataService {
             roleRepository.save(role5);
             roleRepository.save(role6);
             log.info("Inserted user roles to database");
+            insertUsersToDB();
         }else {
             log.info("user roles already exists");
         }
     }
 
     @Override
-    @PostConstruct
+    //@PostConstruct
     public void insertUsersToDB() {
         try{
             if(userRepository.findAll().isEmpty()){
@@ -70,6 +71,7 @@ public class DefaultDataServiceImpl implements DefaultDataService {
                 authUser.setPassword(passwordEncoder.encode("12345678"));
                 authUser.setIsLocked(true);
                 authUser.setIsVerified(true);
+                authUser.setIsEnable(true);
                 authUser.setRoles(authUserService.getRoles(roles));
                 System.out.println(authUser);
                 userRepository.save(authUser);
