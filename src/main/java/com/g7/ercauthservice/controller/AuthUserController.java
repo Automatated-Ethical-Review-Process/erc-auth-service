@@ -49,7 +49,7 @@ import java.util.stream.Collectors;
 @RestController
 @Slf4j
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = {"https://localhost:3000"}, maxAge = 3600, allowCredentials = "true")
+@CrossOrigin(origins = {"https://localhost:3000", "https://erc-ruh.live"}, maxAge = 3600, allowCredentials = "true")
 public class AuthUserController {
 
     @Autowired
