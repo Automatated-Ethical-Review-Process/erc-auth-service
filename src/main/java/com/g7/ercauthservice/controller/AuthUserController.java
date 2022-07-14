@@ -449,8 +449,8 @@ public class AuthUserController {
     public ResponseEntity<?> logout(HttpServletResponse response){
         try {
             refreshTokenService.deleteByUserId(jwtUtils.getUserIdFromRequest());
-            addCookie(response, "access", null, 0);
-            addCookie(response, "refresh", null, 0);
+            addCookie(response, "access", null, 1);
+            addCookie(response, "refresh", null, 1);
             return new ResponseEntity<>(HttpStatus.OK);
         }catch (Exception e){
             throw e;
