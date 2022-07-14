@@ -421,7 +421,7 @@ public class AuthUserController {
             if(!tokenStoreService.exists(id)){
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
-            return new ResponseEntity<>(HttpStatus.FOUND);
+            return new ResponseEntity<>(HttpStatus.ACCEPTED);
         }catch (Exception e){
             throw e;
         }
