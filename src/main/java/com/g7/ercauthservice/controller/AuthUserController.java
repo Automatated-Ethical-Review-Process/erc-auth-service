@@ -79,9 +79,10 @@ public class AuthUserController {
         ResponseCookie cookie = ResponseCookie.from(name, value)
             .httpOnly(true)
             .secure(secure)
-            .path("/")
+            .path("/api/")
+            .domain(".herokuapp.com")  // risky
             .maxAge(maxAge)
-            .sameSite("None")
+            .sameSite("None")  // risky
             .build();
 
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
