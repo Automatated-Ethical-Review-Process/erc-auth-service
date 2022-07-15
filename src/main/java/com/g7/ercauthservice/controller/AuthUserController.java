@@ -80,7 +80,6 @@ public class AuthUserController {
             .httpOnly(true)
             .secure(secure)
             .path("/api/")
-            .domain(".herokuapp.com")  // risky
             .maxAge(maxAge)
             .sameSite("None")  // risky
             .build();
