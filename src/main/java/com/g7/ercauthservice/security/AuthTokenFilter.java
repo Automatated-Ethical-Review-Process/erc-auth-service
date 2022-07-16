@@ -40,10 +40,10 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         try{
-            //String jwt = parseJwt(request);
-            Cookie name = WebUtils.getCookie(request, "access");
+            String jwt = parseJwt(request);
+            //Cookie name = WebUtils.getCookie(request, "access");
             //System.out.println(name.getValue());
-            String jwt = name != null ?name.getValue():null ;
+            //String jwt = name != null ?name.getValue():null ;
 
             if(jwt != null && jwtUtils.validateJwtToken(jwt)){
 

@@ -29,7 +29,7 @@ public class UserInfo {
     @NotNull
     private String address;
 
-    @Pattern(regexp = "(^[0-9]{10}$)",message = "Invalid land number")
+    //@Pattern(regexp = "(^[0-9]{10}$)",message = "Invalid land number")
     @Size(max = 10)
     private String landNumber;
 

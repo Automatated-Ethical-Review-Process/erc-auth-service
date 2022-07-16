@@ -214,8 +214,8 @@ public class AuthUserController {
 
             RestTemplate restTemplate = new RestTemplate();
             HttpHeaders headers =  new HttpHeaders();
-            //headers.add("Authorization","Bearer "+body.getAsString("access"));
-            headers.add("Cookie","access="+body.getAsString("access"));
+            headers.add("Authorization","Bearer "+body.getAsString("access"));
+            //headers.add("Cookie","access="+body.getAsString("access"));
 
             HttpEntity<UserInfo> dataRequest = new HttpEntity<>(userInfo,headers);
             System.out.println(dataRequest);
@@ -229,8 +229,8 @@ public class AuthUserController {
             }
 
             tokenStoreService.deleteToken(token.getToken());
-            addCookie(response, "access", body.getAsString("access"), accessExpirationMs/1000);
-            addCookie(response, "refresh", body.getAsString("refresh"), refreshExpirationMs/1000);
+//            addCookie(response, "access", body.getAsString("access"), accessExpirationMs/1000);
+//            addCookie(response, "refresh", body.getAsString("refresh"), refreshExpirationMs/1000);
             log.info("user created >> {}",authUser.getEmail());
             return new ResponseEntity<>(body,HttpStatus.CREATED);
         }catch (Exception e){
@@ -247,8 +247,8 @@ public class AuthUserController {
     @PostMapping( "/token/generate")
     public ResponseEntity<?> generateToken(@RequestBody AuthUserSignInRequest request, HttpServletResponse response){
         JSONObject body = authUserService.generateToken(request);
-        addCookie(response, "access", body.getAsString("access"), accessExpirationMs/1000);
-        addCookie(response, "refresh", body.getAsString("refresh"), refreshExpirationMs/1000);
+//        addCookie(response, "access", body.getAsString("access"), accessExpirationMs/1000);
+//        addCookie(response, "refresh", body.getAsString("refresh"), refreshExpirationMs/1000);
         return new ResponseEntity<>(body, HttpStatus.OK);
     }
 
@@ -289,7 +289,7 @@ public class AuthUserController {
                     log.info("Successfully return new access token from refresh token");
                     JSONObject response = new JSONObject();
                     response.put("access",token);
-                    addCookie(httpServletResponse, "access", token, 3600);
+                    //addCookie(httpServletResponse, "access", token, 3600);
                     return new ResponseEntity<>(response,HttpStatus.OK);
                 })
                 .orElseThrow(() ->{
@@ -475,8 +475,8 @@ public class AuthUserController {
     public ResponseEntity<?> logout(HttpServletResponse response){
         try {
             refreshTokenService.deleteByUserId(jwtUtils.getUserIdFromRequest());
-            addCookie(response, "access", null, 1);
-            addCookie(response, "refresh", null, 1);
+//            addCookie(response, "access", null, 1);
+//            addCookie(response, "refresh", null, 1);
             return new ResponseEntity<>(HttpStatus.OK);
         }catch (Exception e){
             throw e;
