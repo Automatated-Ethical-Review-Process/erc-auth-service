@@ -40,7 +40,7 @@ public class AuthUserCreateRequest {
 
     private String occupation;
 
-    private String possition;
+    private String position;
 
     private String university;
 

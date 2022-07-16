@@ -49,7 +49,7 @@ public class UserInfo {
 
     private String occupation;
 
-    private String possition;
+    private String position;
 
     private String university;
 

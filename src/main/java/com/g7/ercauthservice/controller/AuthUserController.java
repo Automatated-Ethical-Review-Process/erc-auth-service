@@ -214,7 +214,7 @@ public class AuthUserController {
 
             RestTemplate restTemplate = new RestTemplate();
             HttpHeaders headers =  new HttpHeaders();
-            headers.add("Authorization","Bearer "+body.getAsString("access"));
+            //headers.add("Authorization","Bearer "+body.getAsString("access"));
             headers.add("Cookie","access="+body.getAsString("access"));
 
             HttpEntity<UserInfo> dataRequest = new HttpEntity<>(userInfo,headers);
