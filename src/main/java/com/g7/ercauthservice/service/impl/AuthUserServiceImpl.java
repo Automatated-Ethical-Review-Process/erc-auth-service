@@ -143,18 +143,21 @@ public class AuthUserServiceImpl implements AuthUserService {
     public void changeEnableState(String id) {
         AuthUser authUser = userRepository.findById(id).get();
         authUser.setIsEnable(!authUser.getIsEnable());
+        userRepository.save(authUser);
     }
 
     @Override
     public void changeLockState(String id) {
         AuthUser authUser = userRepository.findById(id).get();
         authUser.setIsLocked(!authUser.getIsLocked());
+        userRepository.save(authUser);
     }
 
     @Override
     public void changeVerifiedState(String id) {
         AuthUser authUser = userRepository.findById(id).get();
-        authUser.setIsVerified(!authUser.getIsVerified());
+        authUser.setIsVerified(true);
+        userRepository.save(authUser);
     }
 
     @Override
