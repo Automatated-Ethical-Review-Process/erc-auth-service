@@ -187,7 +187,7 @@ public class AuthUserController {
             Token token = tokenStoreService.storeToken(new Token(tokenString, IssueType.FOR_EMAIL_VERIFICATION,"new user request"));
             JSONObject response = new JSONObject();
             response.put("token",token.getId());
-            //mailService.sendEmail("gsample590@gmail.com","Complete the sign up process to ERC", MailType.MAIL_VERIFY);
+            mailService.sendEmail(email,"Complete the sign up process to ERC", MailType.MAIL_VERIFY,token.getId());
             return new ResponseEntity<>(response,HttpStatus.OK);
         }catch (Exception e){
             e.printStackTrace();

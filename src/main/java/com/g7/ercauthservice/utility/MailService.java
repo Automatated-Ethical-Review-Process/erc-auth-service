@@ -24,7 +24,7 @@ public class MailService {
     private ThymeleafConfiguration thymeleaf;
 
     @Async
-    public void sendEmail(String address, String subject, MailType type) throws MessagingException, IOException {
+    public void sendEmail(String address, String subject, MailType type,String token) throws MessagingException, IOException {
 
         String senderName = "ERC University of Ruhuna";
         System.out.println("Init");
@@ -33,13 +33,13 @@ public class MailService {
         mimeMessageHelper.setFrom("harshanadun52@gmail.com", senderName);
         mimeMessageHelper.setTo(address);
         mimeMessageHelper.setSubject(subject);
-        mimeMessageHelper.setText(htmlToString(type), true);
+        mimeMessageHelper.setText(htmlToString(type,token), true);
         System.out.println("Start sending");
         mail.getJavaMailSender().send(mimeMessage);
         System.out.println("Email has been sent " + address);
     }
 
-    public String htmlToString(MailType type) {
+    public String htmlToString(MailType type,String token) {
         Context ctx = new Context();
         String note;
         switch (type) {
@@ -49,7 +49,7 @@ public class MailService {
                         " Just press the button below.";
                 ctx.setVariable("message", note);
                 ctx.setVariable("button", "Complete Signup Process");
-                ctx.setVariable("url", "https://picoworkers.com/signup.php");
+                ctx.setVariable("url", "https://erc-ruh.live/signup?token="+token);
                 return thymeleaf.templateEngine().process("email.html", ctx);
 
             case INVITE_CLERK:
