@@ -57,7 +57,7 @@ public class MailService {
                         "of Medical Faculty University of Ruhuna. Please complete the sign up process.";
                 ctx.setVariable("message", note);
                 ctx.setVariable("button", "Complete Signup Process");
-                ctx.setVariable("url", "https://picoworkers.com/signup.php");
+                ctx.setVariable("url", "https://erc-ruh.live/signup?token="+token);
                 return thymeleaf.templateEngine().process("email.html", ctx);
 
             case INVITE_REVIEWER:
@@ -65,7 +65,7 @@ public class MailService {
                         "of Medical Faculty University of Ruhuna. Please complete the sign up process. ";
                 ctx.setVariable("message", note);
                 ctx.setVariable("button", "Complete Signup Process");
-                ctx.setVariable("url", "https://picoworkers.com/signup.php");
+                ctx.setVariable("url", "https://erc-ruh.live/signup?token="+token);
                 return thymeleaf.templateEngine().process("email.html", ctx);
 
             case INVITE_SECRETARY:
@@ -73,14 +73,14 @@ public class MailService {
                         "of Medical Faculty University of Ruhuna, Please complete the sign up process.";
                 ctx.setVariable("message", note);
                 ctx.setVariable("button", "Complete Signup Process");
-                ctx.setVariable("url", "https://picoworkers.com/signup.php");
+                ctx.setVariable("url", "https://erc-ruh.live/signup?token="+token);
                 return thymeleaf.templateEngine().process("email.html", ctx);
 
             case FORGOT_PASSWORD:
                 note = "Click to bellow button to reset your password";
                 ctx.setVariable("message", note);
                 ctx.setVariable("button", "Reset Password");
-                ctx.setVariable("url", "https://picoworkers.com/password-recovery.php");
+                ctx.setVariable("url", "https://erc-ruh.live/forgot-password?token="+token);
                 return thymeleaf.templateEngine().process("email.html", ctx);
 
             case ROLE_CHANGE:

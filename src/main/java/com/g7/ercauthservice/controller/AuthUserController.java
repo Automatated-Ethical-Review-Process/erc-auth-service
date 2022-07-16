@@ -349,7 +349,7 @@ public class AuthUserController {
             Token token = tokenStoreService.storeToken(new Token(tokenString, IssueType.FOR_FORGOT_PASSWORD, authUser.getId()));
             JSONObject response = new JSONObject();
             response.put("token",token.getId());
-            //mailService.sendEmail("gsample590@gmail.com","Reset your ERC password", MailType.FORGOT_PASSWORD);
+            mailService.sendEmail(authUser.getEmail(),"Reset your ERC password", MailType.FORGOT_PASSWORD,token.getId());
             return new ResponseEntity<>(response,HttpStatus.OK);
         }catch (Exception e){
             e.printStackTrace();
