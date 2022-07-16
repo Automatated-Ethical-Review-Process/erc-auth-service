@@ -230,7 +230,7 @@ public class AuthUserController {
 
             tokenStoreService.deleteToken(token.getToken());
 //            addCookie(response, "access", body.getAsString("access"), accessExpirationMs/1000);
-//            addCookie(response, "refresh", body.getAsString("refresh"), refreshExpirationMs/1000);
+            addCookie(response, "refresh", body.getAsString("refresh"), refreshExpirationMs/1000);
             log.info("user created >> {}",authUser.getEmail());
             return new ResponseEntity<>(body,HttpStatus.CREATED);
         }catch (Exception e){
@@ -248,7 +248,7 @@ public class AuthUserController {
     public ResponseEntity<?> generateToken(@RequestBody AuthUserSignInRequest request, HttpServletResponse response){
         JSONObject body = authUserService.generateToken(request);
 //        addCookie(response, "access", body.getAsString("access"), accessExpirationMs/1000);
-//        addCookie(response, "refresh", body.getAsString("refresh"), refreshExpirationMs/1000);
+        addCookie(response, "refresh", body.getAsString("refresh"), refreshExpirationMs/1000);
         return new ResponseEntity<>(body, HttpStatus.OK);
     }
 
