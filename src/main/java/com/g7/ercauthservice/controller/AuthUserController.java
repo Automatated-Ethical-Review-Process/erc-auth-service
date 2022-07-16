@@ -79,9 +79,9 @@ public class AuthUserController {
         ResponseCookie cookie = ResponseCookie.from(name, value)
             .httpOnly(true)
             .secure(secure)
-            .path("/")
+            .path("/api/")
             .maxAge(maxAge)
-            .sameSite("None")
+            .sameSite("None")  // risky
             .build();
 
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
@@ -367,7 +367,7 @@ public class AuthUserController {
             String email = jwtUtils.generateEmailFromToken(token);
             authUserService.forgotPassword(email,request);
             tokenStoreService.deleteToken(token);
-            return new ResponseEntity<>(email,HttpStatus.OK);
+            return new ResponseEntity<>(HttpStatus.OK);
         }catch (Exception e){
             e.printStackTrace();
             throw e;
