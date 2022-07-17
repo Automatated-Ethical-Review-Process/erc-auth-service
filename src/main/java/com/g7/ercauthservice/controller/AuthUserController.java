@@ -277,10 +277,11 @@ public class AuthUserController {
     }
 
     @PostMapping("/token/refresh")
-    public ResponseEntity<?> refreshToken(HttpServletRequest request,HttpServletResponse httpServletResponse) {
-        Cookie name = WebUtils.getCookie(request, "refresh");
-        System.out.println(name);
-        String requestRefreshToken = name != null ? name.getValue() : null;//request.getToken();
+    public ResponseEntity<?> refreshToken(@RequestBody JSONObject request) {
+        //Cookie name = WebUtils.getCookie(request, "refresh");
+        //System.out.println(name);
+        //String requestRefreshToken = name != null ? name.getValue() : null;//request.getToken();
+        String requestRefreshToken = request.getAsString("token");
         return refreshTokenService.findByToken(requestRefreshToken)
                 .map(refreshTokenService::verifyExpiration)
                 .map(RefreshToken::getAuthUser)
