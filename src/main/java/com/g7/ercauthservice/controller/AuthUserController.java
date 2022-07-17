@@ -187,7 +187,7 @@ public class AuthUserController {
             Token token = tokenStoreService.storeToken(new Token(tokenString, IssueType.FOR_EMAIL_VERIFICATION,"new user request"));
             JSONObject response = new JSONObject();
             response.put("token",token.getId());
-            mailService.sendEmail(email,"Complete the sign up process to ERC", MailType.MAIL_VERIFY,token.getId());
+            //mailService.sendEmail(email,"Complete the sign up process to ERC", MailType.MAIL_VERIFY,token.getId());
             return new ResponseEntity<>(response,HttpStatus.OK);
         }catch (Exception e){
             e.printStackTrace();
@@ -350,7 +350,7 @@ public class AuthUserController {
             Token token = tokenStoreService.storeToken(new Token(tokenString, IssueType.FOR_FORGOT_PASSWORD, authUser.getId()));
             JSONObject response = new JSONObject();
             response.put("token",token.getId());
-            mailService.sendEmail(authUser.getEmail(),"Reset your ERC password", MailType.FORGOT_PASSWORD,token.getId());
+            //mailService.sendEmail(authUser.getEmail(),"Reset your ERC password", MailType.FORGOT_PASSWORD,token.getId());
             return new ResponseEntity<>(response,HttpStatus.OK);
         }catch (Exception e){
             e.printStackTrace();
