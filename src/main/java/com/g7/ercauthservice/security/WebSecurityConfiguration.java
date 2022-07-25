@@ -70,6 +70,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST,"/api/auth/create-user/invite/clerk/token").permitAll()
                 .antMatchers(HttpMethod.POST,"/api/auth/create-user/invite/secretary/token").permitAll()
 
+                .antMatchers(HttpMethod.PUT,"/api/auth/user/**").authenticated()
 
                 .antMatchers(HttpMethod.POST,"/api/auth/update/password/forgot/token").permitAll()
                 .antMatchers(HttpMethod.POST,"/api/auth/update/password/forgot").permitAll()

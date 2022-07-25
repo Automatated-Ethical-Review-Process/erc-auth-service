@@ -16,7 +16,7 @@ public interface AuthUserService {
     void remove(String id);
     void updatePassword(String id,String oldPassword,String newPassword) throws Exception;
     String updateEmail(UpdateEmailRequest request) throws Exception;
-    void updateRoles(Set<String> roles,String id) throws Exception;
+    AuthUser updateRoles(Set<String> roles,String id) throws Exception;
     AuthUser getById(String id);
     Boolean existAuthUser(String Email);
     AuthUser getAuthUserByEmail(String email);

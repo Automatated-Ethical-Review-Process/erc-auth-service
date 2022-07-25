@@ -200,7 +200,7 @@ public class AuthUserServiceImpl implements AuthUserService {
         }
     }
     @Override
-    public void updateRoles(Set<String> roles,String id) {
+    public AuthUser updateRoles(Set<String> roles,String id) {
         AuthUser authUser = userRepository.findById(id).get();
         if(1 <= getRoles(roles).size() && getRoles(roles).size()<5){
             Set<com.g7.ercauthservice.entity.Role> enumRoles = getRoles(roles);
@@ -217,7 +217,7 @@ public class AuthUserServiceImpl implements AuthUserService {
                 throw new RoleException("Your entered invalid role");
             }
             authUser.setRoles(enumRoles);
-            userRepository.save(authUser);
+            return userRepository.save(authUser);
         }else{
             throw new RoleException("Invalid roles as argument");
         }

@@ -211,6 +211,7 @@ public class AuthUserController {
             BeanUtils.copyProperties(request,userInfo);
             userInfo.setEmail(authUser.getEmail());
             userInfo.setId(authUser.getId());
+            userInfo.setRoles(authUser.getRoles());
 
             RestTemplate restTemplate = new RestTemplate();
             HttpHeaders headers =  new HttpHeaders();
@@ -386,8 +387,6 @@ public class AuthUserController {
             String token = tokenStoreService.getTokenByIdAndIssueFor(id, IssueType.FOR_EMAIL_UPDATE).getToken();
             request = jwtUtils.generateUpdateEmailRequestFromToken(token);
             String jwt = authUserService.updateEmail(request);
-
-
             RestTemplate restTemplate = new RestTemplate();
             HttpHeaders headers =  new HttpHeaders();
             headers.add("Authorization","Bearer "+jwt);
@@ -434,7 +433,7 @@ public class AuthUserController {
     @PutMapping("/update/roles")
     public ResponseEntity<?> updateRoles(@RequestBody UpdateRoleRequest request) throws MessagingException, IOException {
         try {
-            authUserService.updateRoles(request.getRoles(),jwtUtils.getUserIdFromRequest());
+            AuthUser authUser =authUserService.updateRoles(request.getRoles(),jwtUtils.getUserIdFromRequest());
             //mailService.sendEmail("gsample590@gmail.com","Updated privileges on ERC", MailType.ROLE_CHANGE);
             return new ResponseEntity<>(HttpStatus.OK);
         }catch (Exception e){
