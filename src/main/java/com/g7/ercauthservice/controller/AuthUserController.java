@@ -69,6 +69,8 @@ public class AuthUserController {
     private String userInfoAddURI;
     @Value("${data.api.email}")
     private String userInfoEmailUpdateURI;
+    @Value("${data.api.role}")
+    private String userInfoRoleUpdateURI;
     @Value("${jwtExpirationMs}")
     private int accessExpirationMs;
     @Value("${jwtRefreshExpirationMs}")
@@ -431,9 +433,27 @@ public class AuthUserController {
     }
 
     @PutMapping("/update/roles")
-    public ResponseEntity<?> updateRoles(@RequestBody UpdateRoleRequest request) throws MessagingException, IOException {
+    public ResponseEntity<?> updateRoles(@RequestBody UpdateRoleRequest request) throws Exception {
         try {
-            AuthUser authUser =authUserService.updateRoles(request.getRoles(),jwtUtils.getUserIdFromRequest());
+            AuthUser authUserOld = authUserService.getById(request.getId());
+            AuthUser authUser =authUserService.updateRoles(request.getRoles(), request.getId());
+            String jwt = jwtUtils.generateTokenFromAuthUserId(authUserOld.getId());
+
+            RestTemplate restTemplate = new RestTemplate();
+            HttpHeaders headers =  new HttpHeaders();
+            headers.add("Authorization","Bearer "+jwt);
+            //headers.add("Cookie","access="+jwt);
+
+            UserRoleUpdateRequest roleUpdateRequest = new UserRoleUpdateRequest(authUser.getId(),authUser.getRoles());
+            System.out.println(roleUpdateRequest);
+            HttpEntity<UserRoleUpdateRequest> dataRequest = new HttpEntity<>(roleUpdateRequest,headers);
+            System.out.println(dataRequest);
+            ResponseEntity<?> dataResponse = restTemplate.exchange(userInfoRoleUpdateURI, HttpMethod.PUT,dataRequest,String.class);
+
+            if(dataResponse.getStatusCodeValue() !=200 ){
+                authUserService.roleUpdateByUser(authUser,authUserOld.getRoles());
+                throw new Exception("Roles are not updated : old >> "+authUser.getRoles()+"new >> "+authUser.getRoles());
+            }
             //mailService.sendEmail("gsample590@gmail.com","Updated privileges on ERC", MailType.ROLE_CHANGE);
             return new ResponseEntity<>(HttpStatus.OK);
         }catch (Exception e){

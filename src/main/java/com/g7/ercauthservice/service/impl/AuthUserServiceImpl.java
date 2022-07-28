@@ -161,6 +161,12 @@ public class AuthUserServiceImpl implements AuthUserService {
     }
 
     @Override
+    public void roleUpdateByUser(AuthUser user, Set<com.g7.ercauthservice.entity.Role> roles) {
+        user.setRoles(roles);
+        userRepository.save(user);
+    }
+
+    @Override
     public void updatePassword(String id, String oldPassword, String newPassword) {
         try {
             AuthUser authUser = userRepository.findById(id).get();

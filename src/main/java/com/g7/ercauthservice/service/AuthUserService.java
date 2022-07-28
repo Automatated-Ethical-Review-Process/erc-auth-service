@@ -1,8 +1,8 @@
 package com.g7.ercauthservice.service;
 
 import com.g7.ercauthservice.entity.AuthUser;
+import com.g7.ercauthservice.entity.Role;
 import com.g7.ercauthservice.entity.Token;
-import com.g7.ercauthservice.model.AuthUserCreateRequest;
 import com.g7.ercauthservice.model.AuthUserSignInRequest;
 import com.g7.ercauthservice.model.ForgotPasswordRequest;
 import com.g7.ercauthservice.model.UpdateEmailRequest;
@@ -24,9 +24,9 @@ public interface AuthUserService {
     void passwordCheck(String id,String password);
     JSONObject generateToken(AuthUserSignInRequest request);
     void updateEmailRollBack(UpdateEmailRequest request);
-
     void changeEnableState(String id);
     void changeLockState(String id);
     void changeVerifiedState(String id);
+    void roleUpdateByUser(AuthUser user, Set<Role> roles);
 
 }

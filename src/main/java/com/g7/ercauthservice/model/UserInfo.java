@@ -45,6 +45,6 @@ public class UserInfo {
     private String faculty;
     private String year;
     private String registrationNumber;
-    private List<String> educationalQualifications ;
+    private Set<String> educationalQualifications ;
     private Set<Role> roles;
 }
