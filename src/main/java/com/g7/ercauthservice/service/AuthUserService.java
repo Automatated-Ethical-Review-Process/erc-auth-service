@@ -4,6 +4,7 @@ import com.g7.ercauthservice.entity.AuthUser;
 import com.g7.ercauthservice.entity.Role;
 import com.g7.ercauthservice.entity.Token;
 import com.g7.ercauthservice.model.AuthUserSignInRequest;
+import com.g7.ercauthservice.model.AuthUserStatusResponse;
 import com.g7.ercauthservice.model.ForgotPasswordRequest;
 import com.g7.ercauthservice.model.UpdateEmailRequest;
 import net.minidev.json.JSONObject;
@@ -28,5 +29,6 @@ public interface AuthUserService {
     void changeLockState(String id);
     void changeVerifiedState(String id);
     void roleUpdateByUser(AuthUser user, Set<Role> roles);
+    AuthUserStatusResponse getUserStatesById(String id);
 
 }

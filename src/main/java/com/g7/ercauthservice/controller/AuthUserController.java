@@ -32,6 +32,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.WebUtils;
@@ -499,6 +500,26 @@ public class AuthUserController {
 //            addCookie(response, "refresh", null, 1);
             return new ResponseEntity<>(HttpStatus.OK);
         }catch (Exception e){
+            throw e;
+        }
+    }
+
+    @GetMapping("/auth-user/status/{id}")
+    public ResponseEntity<?> getAuthUserStatesById(@PathVariable String id){
+        return new ResponseEntity<>(authUserService.getUserStatesById(id),HttpStatus.OK);
+    }
+
+    @GetMapping("/auth-user/status")
+    public ResponseEntity<?> getAuthUserStatesByUserSelf(){
+
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            UserDetailsImpl user = (UserDetailsImpl) authentication.getPrincipal();
+            AuthUserStatusResponse response = authUserService.getUserStatesById(user.getId());
+            System.out.println(response);
+            return new ResponseEntity<>(response,HttpStatus.OK);
+        }catch (Exception e){
+            e.printStackTrace();
             throw e;
         }
     }

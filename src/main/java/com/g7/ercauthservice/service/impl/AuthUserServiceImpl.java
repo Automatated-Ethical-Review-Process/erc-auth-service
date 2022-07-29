@@ -7,10 +7,7 @@ import com.g7.ercauthservice.enums.Role;
 import com.g7.ercauthservice.exception.EmailEqualException;
 import com.g7.ercauthservice.exception.PasswordMatchingException;
 import com.g7.ercauthservice.exception.RoleException;
-import com.g7.ercauthservice.model.AuthUserCreateRequest;
-import com.g7.ercauthservice.model.AuthUserSignInRequest;
-import com.g7.ercauthservice.model.ForgotPasswordRequest;
-import com.g7.ercauthservice.model.UpdateEmailRequest;
+import com.g7.ercauthservice.model.*;
 import com.g7.ercauthservice.repository.AuthUserRepository;
 import com.g7.ercauthservice.repository.RoleRepository;
 import com.g7.ercauthservice.security.JwtUtils;
@@ -164,6 +161,16 @@ public class AuthUserServiceImpl implements AuthUserService {
     public void roleUpdateByUser(AuthUser user, Set<com.g7.ercauthservice.entity.Role> roles) {
         user.setRoles(roles);
         userRepository.save(user);
+    }
+
+    @Override
+    public AuthUserStatusResponse getUserStatesById(String id) {
+        AuthUser user = getById(id);
+        return new AuthUserStatusResponse(
+                user.getIsVerified(),
+                user.getIsLocked(),
+                user.getIsEnable()
+        );
     }
 
     @Override
