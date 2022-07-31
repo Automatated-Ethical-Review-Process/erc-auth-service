@@ -524,4 +524,15 @@ public class AuthUserController {
         }
     }
 
+    @GetMapping("/auth-user/all")
+    public ResponseEntity<?> getAllAuthUser(){
+        try {
+            return new ResponseEntity<>(authUserService.getAllAuthUser(),HttpStatus.OK);
+        }catch (Exception e){
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+
 }

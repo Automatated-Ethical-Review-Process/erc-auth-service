@@ -35,8 +35,8 @@ public class AuthUserCreateRequest {
 
     private String passport;
 
-    @NotNull
-    private URL idImg;
+
+    private String idImg;
 
     private String occupation;
 

@@ -15,6 +15,7 @@ import com.g7.ercauthservice.service.AuthUserService;
 import com.g7.ercauthservice.service.RefreshTokenService;
 import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONObject;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -24,8 +25,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -53,7 +56,6 @@ public class AuthUserServiceImpl implements AuthUserService {
     public AuthUserServiceImpl(AuthenticationManager authenticationManager) {
         this.authenticationManager = authenticationManager;
     }
-
     @Override
     public AuthUser add(String password, Token token) {
         AuthUser authUser = new AuthUser();
@@ -83,14 +85,12 @@ public class AuthUserServiceImpl implements AuthUserService {
         System.out.println(authUser);
         return userRepository.save(authUser);
     }
-
     @Override
     public void remove(String id) {
         AuthUser authUser = userRepository.findById(id).get();
         refreshTokenService.deleteByUserId(authUser.getId());
         userRepository.delete(authUser);
     }
-
     @Override
     public void passwordCheck(String id, String password) {
         try {
@@ -102,7 +102,6 @@ public class AuthUserServiceImpl implements AuthUserService {
             throw e;
         }
     }
-
     @Override
     public JSONObject generateToken(AuthUserSignInRequest request) {
         Authentication authentication = authenticationManager.authenticate(
@@ -124,7 +123,6 @@ public class AuthUserServiceImpl implements AuthUserService {
         body.put("verified",userDetails.getIsVerified());
         return body;
     }
-
     @Override
     public void updateEmailRollBack(UpdateEmailRequest request) {
         if(existAuthUser(request.getNewEmail())){
@@ -135,34 +133,29 @@ public class AuthUserServiceImpl implements AuthUserService {
             updateEmail(request);
         }
     }
-
     @Override
     public void changeEnableState(String id) {
         AuthUser authUser = userRepository.findById(id).get();
         authUser.setIsEnable(!authUser.getIsEnable());
         userRepository.save(authUser);
     }
-
     @Override
     public void changeLockState(String id) {
         AuthUser authUser = userRepository.findById(id).get();
         authUser.setIsLocked(!authUser.getIsLocked());
         userRepository.save(authUser);
     }
-
     @Override
     public void changeVerifiedState(String id) {
         AuthUser authUser = userRepository.findById(id).get();
         authUser.setIsVerified(true);
         userRepository.save(authUser);
     }
-
     @Override
     public void roleUpdateByUser(AuthUser user, Set<com.g7.ercauthservice.entity.Role> roles) {
         user.setRoles(roles);
         userRepository.save(user);
     }
-
     @Override
     public AuthUserStatusResponse getUserStatesById(String id) {
         AuthUser user = getById(id);
@@ -171,6 +164,21 @@ public class AuthUserServiceImpl implements AuthUserService {
                 user.getIsLocked(),
                 user.getIsEnable()
         );
+    }
+
+    @Override
+    @PostConstruct
+    public List<AuthUserResponse> getAllAuthUser() {
+        List<AuthUser> authUserList = userRepository.findAll();
+        List<AuthUserResponse> authUserResponses = new ArrayList<>();
+        authUserList.forEach(
+                (x)->{
+                    AuthUserResponse response = new AuthUserResponse();
+                    BeanUtils.copyProperties(x,response);
+                    authUserResponses.add(response);
+                }
+        );
+        return authUserResponses;
     }
 
     @Override
@@ -190,7 +198,6 @@ public class AuthUserServiceImpl implements AuthUserService {
             throw e;
         }
     }
-
     @Override
     public String updateEmail(UpdateEmailRequest request) {
         String oldEmail = request.getOldEmail();
@@ -235,22 +242,18 @@ public class AuthUserServiceImpl implements AuthUserService {
             throw new RoleException("Invalid roles as argument");
         }
     }
-
     @Override
     public AuthUser getById(String id) {
         return userRepository.findById(id).get();
     }
-
     @Override
     public Boolean existAuthUser(String email) {
         return userRepository.existsByEmail(email);
     }
-
     @Override
     public AuthUser getAuthUserByEmail(String email) {
         return userRepository.findByEmail(email).get();
     }
-
     @Override
     public void forgotPassword(String email, ForgotPasswordRequest request) {
         System.out.println(request.getPassword());
@@ -264,8 +267,6 @@ public class AuthUserServiceImpl implements AuthUserService {
         authUser.setPassword(passwordEncoder.encode(request.getPassword()));
         userRepository.save(authUser);
     }
-
-
     public Set<com.g7.ercauthservice.entity.Role> getRoles(Set<String> strRoles){
         Set<com.g7.ercauthservice.entity.Role> roles = new HashSet<>();
         strRoles.forEach(role ->{
@@ -308,7 +309,6 @@ public class AuthUserServiceImpl implements AuthUserService {
         });
         return roles;
     }
-
     public Set<String> setRoles(List<String> strRoles){
         Set<String> roles = new HashSet<>();
         strRoles.forEach(role ->{
@@ -334,7 +334,6 @@ public class AuthUserServiceImpl implements AuthUserService {
         });
         return roles;
     }
-
     public Set<String> setRoles(Set<Role> strRoles){
         Set<String> roles = new HashSet<>();
         strRoles.forEach(role ->{
@@ -360,7 +359,6 @@ public class AuthUserServiceImpl implements AuthUserService {
         });
         return roles;
     }
-
     public Boolean checkRoleUnique(Role role){
         return userRepository.checkRoleUnique(roleRepository.findByName(role).get().getId());
     }

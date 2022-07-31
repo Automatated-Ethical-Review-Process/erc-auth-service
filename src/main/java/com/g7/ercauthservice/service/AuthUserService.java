@@ -3,12 +3,10 @@ package com.g7.ercauthservice.service;
 import com.g7.ercauthservice.entity.AuthUser;
 import com.g7.ercauthservice.entity.Role;
 import com.g7.ercauthservice.entity.Token;
-import com.g7.ercauthservice.model.AuthUserSignInRequest;
-import com.g7.ercauthservice.model.AuthUserStatusResponse;
-import com.g7.ercauthservice.model.ForgotPasswordRequest;
-import com.g7.ercauthservice.model.UpdateEmailRequest;
+import com.g7.ercauthservice.model.*;
 import net.minidev.json.JSONObject;
 
+import java.util.List;
 import java.util.Set;
 
 public interface AuthUserService {
@@ -30,5 +28,6 @@ public interface AuthUserService {
     void changeVerifiedState(String id);
     void roleUpdateByUser(AuthUser user, Set<Role> roles);
     AuthUserStatusResponse getUserStatesById(String id);
+    List<AuthUserResponse> getAllAuthUser();
 
 }

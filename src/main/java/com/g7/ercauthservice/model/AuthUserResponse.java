@@ -1,12 +1,19 @@
 package com.g7.ercauthservice.model;
 
-import lombok.AllArgsConstructor;
+import lombok.*;
 
-import java.util.Set;
+import java.time.Instant;
 
 @AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@ToString
 public class AuthUserResponse {
-    private String access;
-    private String refresh;
-    private Set<String> roles;
+    private String id ;
+    private Boolean isVerified;
+    private Boolean isLocked;
+    private Boolean isEnable;
+    private Instant createdDate;
+    private Instant modifiedDate;
 }
