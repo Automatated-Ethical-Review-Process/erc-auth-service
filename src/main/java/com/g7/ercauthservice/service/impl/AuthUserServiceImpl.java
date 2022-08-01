@@ -167,9 +167,22 @@ public class AuthUserServiceImpl implements AuthUserService {
     }
 
     @Override
-    @PostConstruct
     public List<AuthUserResponse> getAllAuthUser() {
         List<AuthUser> authUserList = userRepository.findAll();
+        List<AuthUserResponse> authUserResponses = new ArrayList<>();
+        authUserList.forEach(
+                (x)->{
+                    AuthUserResponse response = new AuthUserResponse();
+                    BeanUtils.copyProperties(x,response);
+                    authUserResponses.add(response);
+                }
+        );
+        return authUserResponses;
+    }
+
+    @Override
+    public List<AuthUserResponse> getAllUnVerifiedAuthUsers(boolean isVerified) {
+        List<AuthUser> authUserList = userRepository.findAuthUserByIsVerified(isVerified);
         List<AuthUserResponse> authUserResponses = new ArrayList<>();
         authUserList.forEach(
                 (x)->{

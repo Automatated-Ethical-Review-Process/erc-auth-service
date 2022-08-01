@@ -247,7 +247,6 @@ public class AuthUserController {
         }
     }
 
-
     @PostMapping( "/token/generate")
     public ResponseEntity<?> generateToken(@RequestBody AuthUserSignInRequest request, HttpServletResponse response){
         JSONObject body = authUserService.generateToken(request);
@@ -528,6 +527,16 @@ public class AuthUserController {
     public ResponseEntity<?> getAllAuthUser(){
         try {
             return new ResponseEntity<>(authUserService.getAllAuthUser(),HttpStatus.OK);
+        }catch (Exception e){
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    @GetMapping("/auth-user/un-verified")
+    public ResponseEntity<?> getAllUnVerifiedAuthUser(){
+        try {
+            return new ResponseEntity<>(authUserService.getAllUnVerifiedAuthUsers(false),HttpStatus.OK);
         }catch (Exception e){
             e.printStackTrace();
             throw e;

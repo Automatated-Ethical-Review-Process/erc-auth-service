@@ -29,5 +29,6 @@ public interface AuthUserService {
     void roleUpdateByUser(AuthUser user, Set<Role> roles);
     AuthUserStatusResponse getUserStatesById(String id);
     List<AuthUserResponse> getAllAuthUser();
+    List<AuthUserResponse> getAllUnVerifiedAuthUsers(boolean isVerified);
 
 }

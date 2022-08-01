@@ -14,7 +14,7 @@ public interface AuthUserRepository extends JpaRepository<AuthUser,String> {
 
     Optional<AuthUser> findByEmail(String email);
     Boolean existsByEmail(String email);
-
+    List<AuthUser> findAuthUserByIsVerified(Boolean isVerified);
     @Query(value = "SELECT exists (SELECT role_id FROM public.user_roles WHERE role_id=:id limit 1)",nativeQuery = true)
     Boolean checkRoleUnique(@Param("id") Integer id);
 }
