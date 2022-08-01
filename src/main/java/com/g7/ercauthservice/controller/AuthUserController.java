@@ -313,6 +313,7 @@ public class AuthUserController {
             JSONObject response = new JSONObject();
             response.put("valid",true);
             response.put("id",id);
+            response.put("isVerified",userDetails.getIsVerified());
             response.put("authorities",roles);
             return new ResponseEntity<>(response,HttpStatus.OK);
         }catch (Exception e){
