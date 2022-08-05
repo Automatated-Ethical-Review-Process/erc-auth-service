@@ -1,11 +1,10 @@
 package com.g7.ercauthservice.controller;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.g7.ercauthservice.entity.AuthUser;
 import com.g7.ercauthservice.entity.RefreshToken;
 import com.g7.ercauthservice.entity.Token;
 import com.g7.ercauthservice.enums.IssueType;
-import com.g7.ercauthservice.enums.MailType;
 import com.g7.ercauthservice.enums.Role;
 import com.g7.ercauthservice.exception.EmailEqualException;
 import com.g7.ercauthservice.exception.RoleException;
@@ -16,6 +15,7 @@ import com.g7.ercauthservice.security.JwtUtils;
 import com.g7.ercauthservice.service.RefreshTokenService;
 import com.g7.ercauthservice.service.TokenStoreService;
 import com.g7.ercauthservice.service.impl.AuthUserServiceImpl;
+import com.g7.ercauthservice.service.impl.DefaultDataServiceImpl;
 import com.g7.ercauthservice.service.impl.UserDetailsImpl;
 import com.g7.ercauthservice.utility.MailService;
 import lombok.extern.slf4j.Slf4j;
@@ -24,24 +24,15 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.WebUtils;
 
 import javax.mail.MessagingException;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -78,6 +69,9 @@ public class AuthUserController {
     private int refreshExpirationMs;
     @Value("${cookie.secure}")
     private boolean secure;
+
+    @Autowired
+    private DefaultDataServiceImpl defaultDataService;
     private void addCookie(HttpServletResponse response, String name, String value, int maxAge) {
         ResponseCookie cookie = ResponseCookie.from(name, value)
             .httpOnly(true)
@@ -215,6 +209,7 @@ public class AuthUserController {
             userInfo.setEmail(authUser.getEmail());
             userInfo.setId(authUser.getId());
             userInfo.setRoles(authUser.getRoles());
+            userInfo.setEducationalQualifications(request.getEducationalQualifications());
 
             RestTemplate restTemplate = new RestTemplate();
             HttpHeaders headers =  new HttpHeaders();
@@ -236,6 +231,7 @@ public class AuthUserController {
 //            addCookie(response, "access", body.getAsString("access"), accessExpirationMs/1000);
             addCookie(response, "refresh", body.getAsString("refresh"), refreshExpirationMs/1000);
             log.info("user created >> {}",authUser.getEmail());
+            defaultDataService.sendMessage(new ObjectMapper().writeValueAsString(userInfo));
             return new ResponseEntity<>(body,HttpStatus.CREATED);
         }catch (Exception e){
             e.printStackTrace();
@@ -456,6 +452,7 @@ public class AuthUserController {
                 throw new Exception("Roles are not updated : old >> "+authUser.getRoles()+"new >> "+authUser.getRoles());
             }
             //mailService.sendEmail("gsample590@gmail.com","Updated privileges on ERC", MailType.ROLE_CHANGE);
+            //defaultDataService.updateRoles(new ObjectMapper().writeValueAsString(roleUpdateRequest));
             return new ResponseEntity<>(HttpStatus.OK);
         }catch (Exception e){
             throw e;

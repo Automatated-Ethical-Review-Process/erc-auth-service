@@ -34,5 +34,5 @@ public class AuthUserCreateRequest {
     private String faculty;
     private String year;
     private String registrationNumber;
-    private List<String> educationalQualifications ;
+    private Set<String> educationalQualifications ;
 }
