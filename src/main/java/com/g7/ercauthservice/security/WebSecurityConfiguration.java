@@ -60,7 +60,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .authorizeHttpRequests()
                 .antMatchers(HttpMethod.PATCH,"/**").denyAll()
                 .antMatchers(HttpMethod.HEAD,"/**").denyAll()
-                //.antMatchers("/api/auth/test/**").permitAll()
+                .antMatchers("/api/auth/test/**").permitAll()
                 .antMatchers(HttpMethod.GET,"/api/auth/auth-user/**").authenticated()
                 .antMatchers(HttpMethod.POST,"/api/auth/token/generate").permitAll()
                 .antMatchers(HttpMethod.POST,"/api/auth/token/refresh").permitAll()
