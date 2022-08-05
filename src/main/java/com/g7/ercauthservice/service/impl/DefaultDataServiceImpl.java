@@ -2,20 +2,22 @@ package com.g7.ercauthservice.service.impl;
 
 import com.g7.ercauthservice.entity.AuthUser;
 import com.g7.ercauthservice.enums.Role;
+import com.g7.ercauthservice.model.UserInfo;
 import com.g7.ercauthservice.repository.AuthUserRepository;
 import com.g7.ercauthservice.repository.RoleRepository;
 import com.g7.ercauthservice.service.DefaultDataService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jms.core.JmsTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
 import java.util.HashSet;
 import java.util.Set;
 
-@Service
+@Component
 @Slf4j
 @Transactional
 public class DefaultDataServiceImpl implements DefaultDataService {
@@ -29,6 +31,19 @@ public class DefaultDataServiceImpl implements DefaultDataService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+
+    @Autowired
+    private  JmsTemplate jmsTemplate;
+
+    public void sendMessage(String name){
+        jmsTemplate.convertAndSend("queue",name);
+    }
+    public void updateRoles(String data){
+        jmsTemplate.convertAndSend("role_update",data);
+    }
+
+
 
     @Override
     @PostConstruct
@@ -85,4 +100,6 @@ public class DefaultDataServiceImpl implements DefaultDataService {
             throw e;
         }
     }
+
+
 }
