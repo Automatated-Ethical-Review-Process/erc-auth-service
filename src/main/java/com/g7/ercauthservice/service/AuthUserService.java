@@ -30,5 +30,6 @@ public interface AuthUserService {
     AuthUserStatusResponse getUserStatesById(String id);
     List<AuthUserResponse> getAllAuthUser();
     List<AuthUserResponse> getAllUnVerifiedAuthUsers(boolean isVerified);
+    void setUserMessage(String id,String message);
 
 }

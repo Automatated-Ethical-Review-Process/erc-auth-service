@@ -49,6 +49,9 @@ public class AuthUser {
     @Column(name = "modified_date",nullable = false)
     private Instant modifiedDate=Instant.now();
 
+    @Column(name = "user_message")
+    private String userMessage;
+
     @ManyToMany(fetch = FetchType.EAGER )
     @JoinTable(name = "user_roles",joinColumns = @JoinColumn(name ="user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))

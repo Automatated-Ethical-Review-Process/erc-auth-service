@@ -149,6 +149,7 @@ public class AuthUserServiceImpl implements AuthUserService {
     public void changeVerifiedState(String id) {
         AuthUser authUser = userRepository.findById(id).get();
         authUser.setIsVerified(true);
+        authUser.setUserMessage(null);
         userRepository.save(authUser);
     }
     @Override
@@ -192,6 +193,13 @@ public class AuthUserServiceImpl implements AuthUserService {
                 }
         );
         return authUserResponses;
+    }
+
+    @Override
+    public void setUserMessage(String id,String message) {
+        AuthUser authUser = getById(id);
+        authUser.setUserMessage(message);
+        userRepository.save(authUser);
     }
 
     @Override

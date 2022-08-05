@@ -482,6 +482,8 @@ public class AuthUserController {
             JSONObject body = new JSONObject();
             body.put("id",authUser.getId());
             body.put("email",authUser.getEmail());
+            body.put("state",authUser.getIsVerified());
+            body.put("userMessage",authUser.getUserMessage());
             body.put("roles",authUserService.setRoles(roles));
             return new ResponseEntity<>(body,HttpStatus.OK);
         }catch (Exception e){
@@ -541,5 +543,9 @@ public class AuthUserController {
         }
     }
 
-
+    @PutMapping("/user/reject/{id}")
+    public ResponseEntity<?> rejectUserRequestWithMessage(@RequestBody JSONObject jsonObject, @PathVariable String id){
+        authUserService.setUserMessage(id, jsonObject.getAsString("message"));
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
 }
