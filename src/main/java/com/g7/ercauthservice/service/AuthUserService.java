@@ -26,10 +26,11 @@ public interface AuthUserService {
     void changeEnableState(String id);
     void changeLockState(String id);
     void changeVerifiedState(String id);
-    void roleUpdateByUser(AuthUser user, Set<Role> roles);
+    void roleUpdateByUser(String uid, Set<Role> roles);
     AuthUserStatusResponse getUserStatesById(String id);
     List<AuthUserResponse> getAllAuthUser();
     List<AuthUserResponse> getAllUnVerifiedAuthUsers(boolean isVerified);
     void setUserMessage(String id,String message);
+    AuthUser getAuthUserByRole(com.g7.ercauthservice.enums.Role role);
 
 }

@@ -2,7 +2,6 @@ package com.g7.ercauthservice.service.impl;
 
 import com.g7.ercauthservice.entity.AuthUser;
 import com.g7.ercauthservice.enums.Role;
-import com.g7.ercauthservice.model.UserInfo;
 import com.g7.ercauthservice.repository.AuthUserRepository;
 import com.g7.ercauthservice.repository.RoleRepository;
 import com.g7.ercauthservice.service.DefaultDataService;
@@ -44,6 +43,11 @@ public class DefaultDataServiceImpl implements DefaultDataService {
     }
 
 
+    @PostConstruct
+    public void testMethod(){
+        AuthUser authUser =authUserService.getAuthUserByRole(Role.ROLE_ADMIN);
+        System.out.println(authUser);
+    }
 
     @Override
     @PostConstruct

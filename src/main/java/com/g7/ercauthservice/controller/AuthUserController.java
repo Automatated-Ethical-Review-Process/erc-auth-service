@@ -12,6 +12,7 @@ import com.g7.ercauthservice.exception.TokenRefreshException;
 import com.g7.ercauthservice.exception.UserAlreadyExistException;
 import com.g7.ercauthservice.model.*;
 import com.g7.ercauthservice.security.JwtUtils;
+import com.g7.ercauthservice.service.NotificationService;
 import com.g7.ercauthservice.service.RefreshTokenService;
 import com.g7.ercauthservice.service.TokenStoreService;
 import com.g7.ercauthservice.service.impl.AuthUserServiceImpl;
@@ -32,13 +33,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import javax.mail.MessagingException;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
-
-//import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
-//import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
 @RestController
 @Slf4j
@@ -72,6 +71,8 @@ public class AuthUserController {
 
     @Autowired
     private DefaultDataServiceImpl defaultDataService;
+    @Autowired
+    private NotificationService notificationService;
     private void addCookie(HttpServletResponse response, String name, String value, int maxAge) {
         ResponseCookie cookie = ResponseCookie.from(name, value)
             .httpOnly(true)
@@ -270,8 +271,9 @@ public class AuthUserController {
     }
 
     @PutMapping("/user/verified/{id}")
-    public ResponseEntity<?> changeVerifiedStateByUserId(@PathVariable String id){
+    public ResponseEntity<?> changeVerifiedStateByUserId(@PathVariable String id,HttpServletRequest httpServletRequest){
         authUserService.changeVerifiedState(id);
+        notificationService.notificationCreateRequestVerify(jwtUtils.getUserIdFromRequest(),id,httpServletRequest);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -376,7 +378,7 @@ public class AuthUserController {
     }
 
     @PutMapping("/update/email")
-    public ResponseEntity<?> updateEmail(@RequestParam String id) throws Exception {
+    public ResponseEntity<?> updateEmail(@RequestParam String id,HttpServletRequest httpServletRequest) throws Exception {
 
         UpdateEmailRequest request = null;
         try {
@@ -402,6 +404,7 @@ public class AuthUserController {
                 throw new Exception("Email not updated : old >> "+request.getOldEmail()+"new >> "+request.getNewEmail());
             }
             tokenStoreService.deleteToken(token);
+            notificationService.notificationCreateRequestUpdateEmail("SYSTEM", request.getId(),httpServletRequest, request.getOldEmail(), request.getNewEmail());
             return new ResponseEntity<>(request,HttpStatus.OK);
         }catch (Exception e){
             authUserService.updateEmailRollBack(request);
@@ -430,31 +433,30 @@ public class AuthUserController {
     }
 
     @PutMapping("/update/roles")
-    public ResponseEntity<?> updateRoles(@RequestBody UpdateRoleRequest request) throws Exception {
+    public ResponseEntity<?> updateRoles(@RequestBody UpdateRoleRequest request, HttpServletRequest httpServletRequest) throws Exception {
+        AuthUser authUser = new AuthUser();
+        AuthUser authUserOld = authUserService.getById(request.getId());
         try {
-            AuthUser authUserOld = authUserService.getById(request.getId());
-            AuthUser authUser =authUserService.updateRoles(request.getRoles(), request.getId());
-            String jwt = jwtUtils.generateTokenFromAuthUserId(authUserOld.getId());
+            authUser =authUserService.updateRoles(request.getRoles(), request.getId());
 
             RestTemplate restTemplate = new RestTemplate();
             HttpHeaders headers =  new HttpHeaders();
-            headers.add("Authorization","Bearer "+jwt);
-            //headers.add("Cookie","access="+jwt);
-
+            headers.add("Authorization",httpServletRequest.getHeader("Authorization"));
             UserRoleUpdateRequest roleUpdateRequest = new UserRoleUpdateRequest(authUser.getId(),authUser.getRoles());
-            System.out.println(roleUpdateRequest);
             HttpEntity<UserRoleUpdateRequest> dataRequest = new HttpEntity<>(roleUpdateRequest,headers);
-            System.out.println(dataRequest);
             ResponseEntity<?> dataResponse = restTemplate.exchange(userInfoRoleUpdateURI, HttpMethod.PUT,dataRequest,String.class);
 
             if(dataResponse.getStatusCodeValue() !=200 ){
-                authUserService.roleUpdateByUser(authUser,authUserOld.getRoles());
-                throw new Exception("Roles are not updated : old >> "+authUser.getRoles()+"new >> "+authUser.getRoles());
+                authUserService.roleUpdateByUser(request.getId(),authUserOld.getRoles());
             }
             //mailService.sendEmail("gsample590@gmail.com","Updated privileges on ERC", MailType.ROLE_CHANGE);
             //defaultDataService.updateRoles(new ObjectMapper().writeValueAsString(roleUpdateRequest));
+            notificationService.notificationCreateRequestUpdateRole(jwtUtils.getUserIdFromRequest(), request.getId(), httpServletRequest);
             return new ResponseEntity<>(HttpStatus.OK);
         }catch (Exception e){
+            assert authUser != null;
+            authUserService.roleUpdateByUser(request.getId(),authUserOld.getRoles());
+            //e.printStackTrace();
             throw e;
         }
     }

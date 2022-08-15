@@ -24,10 +24,11 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityNotFoundException;
-import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -36,7 +37,6 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-@Transactional
 public class AuthUserServiceImpl implements AuthUserService {
 
     @Autowired
@@ -152,11 +152,7 @@ public class AuthUserServiceImpl implements AuthUserService {
         authUser.setUserMessage(null);
         userRepository.save(authUser);
     }
-    @Override
-    public void roleUpdateByUser(AuthUser user, Set<com.g7.ercauthservice.entity.Role> roles) {
-        user.setRoles(roles);
-        userRepository.save(user);
-    }
+
     @Override
     public AuthUserStatusResponse getUserStatesById(String id) {
         AuthUser user = getById(id);
@@ -200,6 +196,12 @@ public class AuthUserServiceImpl implements AuthUserService {
         AuthUser authUser = getById(id);
         authUser.setUserMessage(message);
         userRepository.save(authUser);
+    }
+
+    @Override
+    public AuthUser getAuthUserByRole(Role role) {
+        com.g7.ercauthservice.entity.Role role1 = roleRepository.findByName(role).get();
+        return userRepository.getAuthUserByRole(role1.getId());
     }
 
     @Override
@@ -262,6 +264,15 @@ public class AuthUserServiceImpl implements AuthUserService {
         }else{
             throw new RoleException("Invalid roles as argument");
         }
+    }
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void roleUpdateByUser(String id, Set<com.g7.ercauthservice.entity.Role> roles) {
+        AuthUser authUser = userRepository.findById(id).
+                orElseThrow(()-> new EntityNotFoundException("User not found"));
+        authUser.setRoles(roles);
+        AuthUser user = userRepository.saveAndFlush(authUser);
+        System.out.println(user.getRoles());
     }
     @Override
     public AuthUser getById(String id) {
