@@ -42,7 +42,7 @@ public class AuthUserServiceImpl implements AuthUserService {
         authUser.setEmail(request.getEmail());
         authUser.setPassword(passwordEncoder.encode(request.getPassword()));
         authUser.setIsLocked(true);
-        authUser.setIsVerified(true);
+        authUser.setIsVerified(false);
         authUser.setRoles(getRoles(request.getRoles()));
         System.out.println(authUser);
         return userRepository.save(authUser);
