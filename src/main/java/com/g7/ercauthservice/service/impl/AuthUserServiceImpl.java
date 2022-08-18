@@ -63,7 +63,7 @@ public class AuthUserServiceImpl implements AuthUserService {
         authUser.setEmail(jwtUtils.generateEmailFromToken(token.getToken()));
         authUser.setPassword(passwordEncoder.encode(password));
         authUser.setIsLocked(true);
-        authUser.setIsVerified(true);
+        authUser.setIsVerified(false);
         authUser.setIsEnable(true);
         Set<String> roles = new HashSet<>();
         switch (token.getIssueFor()){
