@@ -37,6 +37,8 @@ public class UserInfo {
     private Boolean isUnderGraduate;
     private String nic;
     private String passport;
+    private String verificationImage;
+    private String profileImage;
     private String occupation;
     private String position;
     private String university;
