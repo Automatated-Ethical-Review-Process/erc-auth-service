@@ -1,6 +1,6 @@
 package com.g7.ercauthservice.entity;
 
-import com.g7.ercauthservice.enums.EnumIssueType;
+import com.g7.ercauthservice.enums.IssueType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,11 +21,11 @@ public class Token {
     private String token;
     @Enumerated(EnumType.STRING)
     @Column(length = 40)
-    private EnumIssueType issueFor;
+    private IssueType issueFor;
     @Column(name = "uid")
     private String userId;
 
-    public Token(String token, EnumIssueType issueFor, String userId) {
+    public Token(String token, IssueType issueFor, String userId) {
         this.token = token;
         this.issueFor = issueFor;
         this.userId = userId;

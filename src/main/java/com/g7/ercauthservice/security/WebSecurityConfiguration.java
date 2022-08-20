@@ -51,6 +51,9 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+
+        http.authorizeHttpRequests().antMatchers("/api/auth/test/**").permitAll();
+
         http.cors().and().csrf().disable()
                 .exceptionHandling().authenticationEntryPoint(authEntrypointJwt).and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
@@ -58,20 +61,30 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.PATCH,"/**").denyAll()
                 .antMatchers(HttpMethod.HEAD,"/**").denyAll()
                 .antMatchers("/api/auth/test/**").permitAll()
+                .antMatchers(HttpMethod.GET,"/api/auth/auth-user/**").authenticated()
                 .antMatchers(HttpMethod.POST,"/api/auth/token/generate").permitAll()
                 .antMatchers(HttpMethod.POST,"/api/auth/token/refresh").permitAll()
                 .antMatchers(HttpMethod.POST,"/api/auth/create-user").permitAll()
                 .antMatchers(HttpMethod.POST,"/api/auth/create-user/token").permitAll()
+
                 .antMatchers(HttpMethod.POST,"/api/auth/create-user/invite/reviewer/token").permitAll()
+                .antMatchers(HttpMethod.POST,"/api/auth/create-user/invite/clerk/token").permitAll()
+                .antMatchers(HttpMethod.POST,"/api/auth/create-user/invite/secretary/token").permitAll()
+
+                .antMatchers(HttpMethod.PUT,"/api/auth/user/**").authenticated()
+
                 .antMatchers(HttpMethod.POST,"/api/auth/update/password/forgot/token").permitAll()
                 .antMatchers(HttpMethod.POST,"/api/auth/update/password/forgot").permitAll()
-                .antMatchers(HttpMethod.POST,"/api/auth/update/email").permitAll()
+                .antMatchers(HttpMethod.PUT,"/api/auth/update/email").permitAll()
                 .antMatchers(HttpMethod.POST,"/api/auth/request/validate").permitAll()
                 .antMatchers(HttpMethod.POST,"/api/auth/token/validate").permitAll()
-                .antMatchers(HttpMethod.POST,"/api/auth/current-user").authenticated()
+                .antMatchers(HttpMethod.GET,"/api/auth/current-user").authenticated()
+                .antMatchers(HttpMethod.POST,"/api/auth/check/password").authenticated()
                 .antMatchers(HttpMethod.POST,"/api/auth/update/email/send/token").authenticated()
-                .antMatchers(HttpMethod.POST,"/api/auth/update/password").authenticated()
-                .antMatchers(HttpMethod.POST,"/api/auth/update/roles").authenticated()
+                .antMatchers(HttpMethod.PUT,"/api/auth/update/password").authenticated()
+                .antMatchers(HttpMethod.PUT,"/api/auth/update/roles").authenticated()
+                .antMatchers(HttpMethod.POST,"/api/auth/logout").authenticated()
+                .antMatchers(HttpMethod.PUT,"/api/auth/user/reject").authenticated()
                 .antMatchers("/**").denyAll();
 
         http.addFilterBefore(authTokenFilter(), UsernamePasswordAuthenticationFilter.class);

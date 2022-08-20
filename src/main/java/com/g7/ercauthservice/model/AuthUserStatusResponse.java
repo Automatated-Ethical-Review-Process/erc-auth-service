@@ -2,18 +2,13 @@ package com.g7.ercauthservice.model;
 
 import lombok.*;
 
-import java.time.Instant;
-
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 @Getter
 @Setter
-@ToString
-public class AuthUserResponse {
-    private String id ;
+public class AuthUserStatusResponse {
     private Boolean isVerified;
     private Boolean isLocked;
     private Boolean isEnable;
-    private Instant createdDate;
-    private Instant modifiedDate;
 }

@@ -1,6 +1,5 @@
 package com.g7.ercauthservice.entity;
 
-import com.g7.ercauthservice.enums.EnumRole;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,10 +17,10 @@ public class Role {
     private int id;
 
     @Enumerated(EnumType.STRING)
-    @Column(length = 20)
-    private EnumRole name;
+    @Column(length = 25)
+    private com.g7.ercauthservice.enums.Role name;
 
-    public Role(EnumRole name) {
+    public Role(com.g7.ercauthservice.enums.Role name) {
         this.name = name;
     }
 }

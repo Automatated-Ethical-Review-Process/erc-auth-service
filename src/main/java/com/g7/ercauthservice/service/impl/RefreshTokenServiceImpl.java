@@ -15,6 +15,7 @@ import java.time.Instant;
 import java.util.Optional;
 
 @Service
+@Transactional
 public class RefreshTokenServiceImpl implements RefreshTokenService {
 
     @Value("${jwtRefreshExpirationMs}")
@@ -39,7 +40,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
                 String [] token={jwt.substring(0,99), String.valueOf(Instant.now().hashCode()),jwt.substring(100,227)};
                 refreshToken.setAuthUser(authUserRepository.findById(userId).get());
                 refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenDurationMs));
-                refreshToken.setToken(token[0]+token[1]+token[2]);
+                refreshToken.setToken(jwt);
                 return refreshTokenRepository.save(refreshToken);
             }
         }
@@ -60,6 +61,17 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
             AuthUser authUser =authUserRepository.findById(userId).get();
             refreshTokenRepository.deleteByAuthUser(authUser);
         }
-
     }
+
+    @Override
+    public void deleteExpiredRefreshTokenByAuthUser(String id) {
+        AuthUser authUser = authUserRepository.findById(id).get();
+        if(refreshTokenRepository.existsRefreshTokenByAuthUser(authUser)){
+            RefreshToken token = refreshTokenRepository.findRefreshTokenByAuthUser(authUser).get();
+            if(token.getExpiryDate().compareTo(Instant.now())<0){
+                refreshTokenRepository.delete(token);
+            }
+        }
+    }
+
 }

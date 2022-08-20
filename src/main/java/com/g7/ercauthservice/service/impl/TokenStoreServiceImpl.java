@@ -1,13 +1,16 @@
 package com.g7.ercauthservice.service.impl;
 
 import com.g7.ercauthservice.entity.Token;
-import com.g7.ercauthservice.enums.EnumIssueType;
+import com.g7.ercauthservice.enums.IssueType;
 import com.g7.ercauthservice.repository.TokenRepository;
 import com.g7.ercauthservice.service.TokenStoreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
+
 @Service
+@Transactional
 public class TokenStoreServiceImpl implements TokenStoreService {
 
     @Autowired
@@ -23,7 +26,7 @@ public class TokenStoreServiceImpl implements TokenStoreService {
     }
 
     @Override
-    public Token getTokenByIdAndIssueFor(String id, EnumIssueType issueType) throws Exception {
+    public Token getTokenByIdAndIssueFor(String id, IssueType issueType) throws Exception {
         try {
             Token token = tokenRepository.findById(id).get();
             if(!exists(id) || token.getIssueFor() != issueType){
@@ -49,6 +52,7 @@ public class TokenStoreServiceImpl implements TokenStoreService {
 
     @Override
     public Token storeToken(Token token) {
+        tokenRepository.deleteTokenByUserIdAndIssueFor(token.getUserId(),token.getIssueFor());
         return tokenRepository.save(token);
     }
 

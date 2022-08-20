@@ -31,7 +31,6 @@ public class AuthUser {
     private String email;
 
     @NotBlank
-    @Size(min=7,max=50)
     @Column(name = "password",nullable = false)
     private String password;
 
@@ -41,11 +40,17 @@ public class AuthUser {
     @Column(name = "is_locked",nullable = false)
     private Boolean isLocked;
 
+    @Column(name = "is_enable",nullable = false)
+    private Boolean isEnable;
+
     @Column(name = "created_date",nullable = false)
     private Instant createdDate=Instant.now();
 
     @Column(name = "modified_date",nullable = false)
     private Instant modifiedDate=Instant.now();
+
+    @Column(name = "user_message")
+    private String userMessage;
 
     @ManyToMany(fetch = FetchType.EAGER )
     @JoinTable(name = "user_roles",joinColumns = @JoinColumn(name ="user_id"),

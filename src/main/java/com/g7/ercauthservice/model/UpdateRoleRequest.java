@@ -10,5 +10,6 @@ import java.util.Set;
 @NoArgsConstructor
 @Data
 public class UpdateRoleRequest {
+    private String id;
     private Set<String> roles ;
 }

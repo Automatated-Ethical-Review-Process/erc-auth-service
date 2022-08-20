@@ -1,18 +1,27 @@
 package com.g7.ercauthservice.model;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.g7.ercauthservice.entity.Role;
+import lombok.*;
 
 import javax.validation.constraints.*;
 import java.net.URL;
 import java.util.List;
 import java.util.Set;
 
-@Data
+@AllArgsConstructor
 @NoArgsConstructor
-public class AuthUserCreateRequest {
+@Getter
+@Setter
+@Builder
+@ToString
+public class UserInfo {
+
+    @NotNull
+    private String id ;
     @NotBlank
-    private String password;
+    @Size(max=50)
+    @Email(message = "Invalid Email")
+    private String email;
     @NotNull
     private String name;
     @Size(min = 4)
@@ -35,4 +44,5 @@ public class AuthUserCreateRequest {
     private String year;
     private String registrationNumber;
     private Set<String> educationalQualifications ;
+    private Set<Role> roles;
 }

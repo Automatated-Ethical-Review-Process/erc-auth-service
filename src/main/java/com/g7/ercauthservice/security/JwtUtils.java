@@ -7,7 +7,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import org.springframework.web.util.WebUtils;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
 
@@ -19,9 +21,11 @@ public class JwtUtils {
     @Value("${jwtSecret_auth}")
     private String jwtSecret_auth;
 
+    private final HttpServletRequest request;
+
     @Value("${jwtSecret_email}")
     private String jwtSecret_email;
-    private final HttpServletRequest request;
+
     @Value("${jwtExpirationMs}")
     private int jwtExpirationMs;
 
@@ -50,6 +54,9 @@ public class JwtUtils {
             return authenticationHeader.substring(7);
         }
         return null;
+        //Cookie name = WebUtils.getCookie(request, "access");
+        //System.out.println(name.getValue());
+        //return name.getValue();
     }
     public String getUserIdFromRequest(){
         return getUserIdFromJwtToken(parseJwt(request));

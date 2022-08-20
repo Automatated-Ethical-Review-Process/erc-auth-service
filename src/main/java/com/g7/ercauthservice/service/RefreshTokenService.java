@@ -1,5 +1,6 @@
 package com.g7.ercauthservice.service;
 
+import com.g7.ercauthservice.entity.AuthUser;
 import com.g7.ercauthservice.entity.RefreshToken;
 
 import java.util.Optional;
@@ -10,4 +11,5 @@ public interface RefreshTokenService {
     RefreshToken  createRefreshToken(String userId,String jwt);
     RefreshToken verifyExpiration(RefreshToken token);
     void deleteByUserId(String userId);
+    void deleteExpiredRefreshTokenByAuthUser(String id);
 }

@@ -19,14 +19,17 @@ public class UserDetailsImpl implements UserDetails {
     private static Boolean isLocked;
     private static  Boolean isVerified;
 
+    private static Boolean isEnable;
+
     private Collection<? extends GrantedAuthority> authorities;
 
-    public UserDetailsImpl(String id, String email, String password, Boolean isLocked, Boolean isVerified, Collection<? extends GrantedAuthority> authorities) {
+    public UserDetailsImpl(String id, String email, String password, Boolean isLocked, Boolean isVerified,Boolean isEnable, Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.email = email;
         this.password = password;
-        this.isLocked = isLocked;
-        this.isVerified = isVerified;
+        UserDetailsImpl.isLocked = isLocked;
+        UserDetailsImpl.isVerified = isVerified;
+        UserDetailsImpl.isEnable = isEnable;
         this.authorities = authorities;
     }
 
@@ -39,13 +42,17 @@ public class UserDetailsImpl implements UserDetails {
                 user.getId(),
                 user.getEmail(),
                 user.getPassword(),
-                isLocked, isVerified, authorities
+                user.getIsLocked(), user.getIsVerified(),user.getIsEnable(), authorities
         );
     }
 
 
     public String getId() {
         return id;
+    }
+
+    public Boolean getIsVerified(){
+        return isVerified;
     }
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -69,7 +76,7 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return isLocked;
     }
 
     @Override
@@ -79,6 +86,6 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return isEnable;
     }
 }
