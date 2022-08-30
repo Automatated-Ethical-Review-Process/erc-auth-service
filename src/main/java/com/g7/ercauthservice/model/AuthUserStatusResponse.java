@@ -11,4 +11,5 @@ public class AuthUserStatusResponse {
     private Boolean isVerified;
     private Boolean isLocked;
     private Boolean isEnable;
+    private String userMessage;
 }

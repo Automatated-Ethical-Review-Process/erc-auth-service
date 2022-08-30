@@ -159,7 +159,8 @@ public class AuthUserServiceImpl implements AuthUserService {
         return new AuthUserStatusResponse(
                 user.getIsVerified(),
                 user.getIsLocked(),
-                user.getIsEnable()
+                user.getIsEnable(),
+                user.getUserMessage()
         );
     }
 
