@@ -135,6 +135,16 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler{
         return apiError;
     }
 
+    @ExceptionHandler(CustomException.class)
+    @ResponseBody
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError CustomExceptionHandler(CustomException ex){
+        ApiError apiError = new ApiError();
+        apiError.setFields(null);
+        apiError.setMessage(ex.getMessage());
+        return apiError;
+    }
+
     @ExceptionHandler(Exception.class)
     @ResponseBody
     @ResponseStatus(HttpStatus.BAD_REQUEST)
