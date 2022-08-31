@@ -55,8 +55,8 @@ public class AuthUserController {
     private TokenStoreService tokenStoreService;
     @Autowired
     private MailService mailService;
-    @Autowired
-    private RestTemplate restTemplate;
+    //@Autowired
+    //private RestTemplate restTemplate;
 
     @Value("${data.api.signUp}")
     private String userInfoAddURI;
