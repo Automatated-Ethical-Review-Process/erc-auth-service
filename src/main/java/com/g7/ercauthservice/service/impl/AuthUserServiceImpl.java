@@ -4,6 +4,7 @@ import com.g7.ercauthservice.entity.AuthUser;
 import com.g7.ercauthservice.entity.RefreshToken;
 import com.g7.ercauthservice.entity.Token;
 import com.g7.ercauthservice.enums.Role;
+import com.g7.ercauthservice.exception.CustomException;
 import com.g7.ercauthservice.exception.EmailEqualException;
 import com.g7.ercauthservice.exception.PasswordMatchingException;
 import com.g7.ercauthservice.exception.RoleException;
@@ -27,7 +28,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.PostConstruct;
 import javax.persistence.EntityNotFoundException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -142,8 +142,15 @@ public class AuthUserServiceImpl implements AuthUserService {
     @Override
     public void changeLockState(String id) {
         AuthUser authUser = userRepository.findById(id).get();
-        authUser.setIsLocked(!authUser.getIsLocked());
-        userRepository.save(authUser);
+        com.g7.ercauthservice.entity.Role admin = roleRepository.findByName(Role.ROLE_ADMIN).get();
+        com.g7.ercauthservice.entity.Role secretary = roleRepository.findByName(Role.ROLE_SECRETARY).get();
+        com.g7.ercauthservice.entity.Role clerk = roleRepository.findByName(Role.ROLE_CLERK).get();
+        if(authUser.getRoles().contains(admin)||authUser.getRoles().contains(secretary)||authUser.getRoles().contains(clerk)){
+            throw new CustomException("You are not allowed to perform this action");
+        }else{
+            authUser.setIsLocked(!authUser.getIsLocked());
+            userRepository.save(authUser);
+        }
     }
     @Override
     public void changeVerifiedState(String id) {
