@@ -55,6 +55,8 @@ public class AuthUserController {
     private TokenStoreService tokenStoreService;
     @Autowired
     private MailService mailService;
+    @Autowired
+    private RestTemplate restTemplate;
 
     @Value("${data.api.signUp}")
     private String userInfoAddURI;
@@ -62,6 +64,8 @@ public class AuthUserController {
     private String userInfoEmailUpdateURI;
     @Value("${data.api.role}")
     private String userInfoRoleUpdateURI;
+    @Value("${data.api.reject}")
+    private String userRemoveVerificationImageUpdateURI;
     @Value("${jwtExpirationMs}")
     private int accessExpirationMs;
     @Value("${jwtRefreshExpirationMs}")
@@ -546,8 +550,16 @@ public class AuthUserController {
     }
 
     @PutMapping("/user/reject/{id}")
-    public ResponseEntity<?> rejectUserRequestWithMessage(@RequestBody JSONObject jsonObject, @PathVariable String id){
+    public ResponseEntity<?> rejectUserRequestWithMessage(@RequestBody JSONObject jsonObject, @PathVariable String id,HttpServletRequest httpServletRequest){
         authUserService.setUserMessage(id, jsonObject.getAsString("message"));
+
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers =  new HttpHeaders();
+        headers.add("Authorization",httpServletRequest.getHeader("Authorization"));
+        JSONObject jsonObject1 = new JSONObject();
+        jsonObject1.put("id",jwtUtils.getUserIdFromRequest());
+        HttpEntity<JSONObject> dataRequest = new HttpEntity<>(jsonObject1,headers);
+        restTemplate.exchange(userRemoveVerificationImageUpdateURI, HttpMethod.PUT,dataRequest,String.class);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }
