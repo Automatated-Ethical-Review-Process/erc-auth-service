@@ -7,7 +7,6 @@ import com.g7.ercauthservice.repository.RoleRepository;
 import com.g7.ercauthservice.service.DefaultDataService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jms.core.JmsTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -32,14 +31,14 @@ public class DefaultDataServiceImpl implements DefaultDataService {
     private PasswordEncoder passwordEncoder;
 
 
-    @Autowired
-    private  JmsTemplate jmsTemplate;
+    //@Autowired
+    //private  JmsTemplate jmsTemplate;
 
     public void sendMessage(String name){
-        jmsTemplate.convertAndSend("queue",name);
+        //jmsTemplate.convertAndSend("queue",name);
     }
     public void updateRoles(String data){
-        jmsTemplate.convertAndSend("role_update",data);
+        //jmsTemplate.convertAndSend("role_update",data);
     }
 
 
