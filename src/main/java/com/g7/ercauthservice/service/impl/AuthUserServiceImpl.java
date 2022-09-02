@@ -179,6 +179,7 @@ public class AuthUserServiceImpl implements AuthUserService {
                 (x)->{
                     AuthUserResponse response = new AuthUserResponse();
                     BeanUtils.copyProperties(x,response);
+                    response.setHasReviewed(x.getUserMessage() != null)
                     authUserResponses.add(response);
                 }
         );
@@ -193,6 +194,7 @@ public class AuthUserServiceImpl implements AuthUserService {
                 (x)->{
                     AuthUserResponse response = new AuthUserResponse();
                     BeanUtils.copyProperties(x,response);
+                    response.setHasReviewed(x.getUserMessage() != null)
                     authUserResponses.add(response);
                 }
         );
