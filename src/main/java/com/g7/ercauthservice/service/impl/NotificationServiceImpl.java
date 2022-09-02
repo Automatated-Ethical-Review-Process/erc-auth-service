@@ -81,4 +81,20 @@ public class NotificationServiceImpl implements NotificationService {
         sendNotification(notificationCreateRequest,request);
     }
 
+    @Override
+    public void notificationCreateRequestReject(String sender, String receiver, HttpServletRequest request) {
+        String title ="Your new user request is rejected  ";
+        String content = "Your new user request is rejected . Now you are not eligible to use all available functionalities.";
+        NotificationCreateRequest notificationCreateRequest= NotificationCreateRequest.builder()
+                .title(title)
+                .content(content)
+                .contentId(null)
+                .contentName(null)
+                .sender(sender)
+                .receiver(receiver)
+                .type(NotificationType.USER_PROFILE)
+                .build();
+        sendNotification(notificationCreateRequest,request);
+    }
+
 }

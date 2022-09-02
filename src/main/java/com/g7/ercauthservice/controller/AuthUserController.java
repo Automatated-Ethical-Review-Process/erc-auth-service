@@ -560,6 +560,7 @@ public class AuthUserController {
         jsonObject1.put("id",jwtUtils.getUserIdFromRequest());
         HttpEntity<JSONObject> dataRequest = new HttpEntity<>(jsonObject1,headers);
         restTemplate.exchange(userRemoveVerificationImageUpdateURI, HttpMethod.PUT,dataRequest,String.class);
+        notificationService.notificationCreateRequestReject(jwtUtils.getUserIdFromRequest(),id,httpServletRequest);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }
