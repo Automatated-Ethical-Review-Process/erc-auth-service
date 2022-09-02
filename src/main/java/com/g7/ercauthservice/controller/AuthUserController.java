@@ -554,7 +554,7 @@ public class AuthUserController {
         HttpHeaders headers =  new HttpHeaders();
         headers.add("Authorization",httpServletRequest.getHeader("Authorization"));
         JSONObject jsonObject1 = new JSONObject();
-        jsonObject1.put("id",jwtUtils.getUserIdFromRequest());
+        jsonObject1.put("id",id);
         HttpEntity<JSONObject> dataRequest = new HttpEntity<>(jsonObject1,headers);
         ResponseEntity<?> response =restTemplate.exchange(userRemoveVerificationImageUpdateURI, HttpMethod.PUT,dataRequest,String.class);
         System.out.println(response);
