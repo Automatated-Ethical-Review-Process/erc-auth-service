@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import javax.persistence.EntityNotFoundException;
@@ -240,5 +241,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler{
         apiError.setMessage("Required request body is missing");
         apiError.setFields(null);
         return new ResponseEntity<>(apiError,HttpStatus.BAD_REQUEST);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleAsyncRequestTimeoutException(AsyncRequestTimeoutException ex, HttpHeaders headers, HttpStatus status, WebRequest webRequest) {
+        System.out.println("My Error");
+        return super.handleAsyncRequestTimeoutException(ex, headers, status, webRequest);
     }
 }
