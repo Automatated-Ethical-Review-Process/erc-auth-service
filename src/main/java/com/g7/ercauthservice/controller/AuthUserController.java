@@ -550,14 +550,14 @@ public class AuthUserController {
     @PutMapping("/user/reject/{id}")
     public ResponseEntity<?> rejectUserRequestWithMessage(@RequestBody JSONObject jsonObject, @PathVariable String id,HttpServletRequest httpServletRequest){
         authUserService.setUserMessage(id, jsonObject.getAsString("message"));
-
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers =  new HttpHeaders();
         headers.add("Authorization",httpServletRequest.getHeader("Authorization"));
         JSONObject jsonObject1 = new JSONObject();
         jsonObject1.put("id",jwtUtils.getUserIdFromRequest());
         HttpEntity<JSONObject> dataRequest = new HttpEntity<>(jsonObject1,headers);
-        restTemplate.exchange(userRemoveVerificationImageUpdateURI, HttpMethod.PUT,dataRequest,String.class);
+        ResponseEntity<?> response =restTemplate.exchange(userRemoveVerificationImageUpdateURI, HttpMethod.PUT,dataRequest,String.class);
+        System.out.println(response);
         notificationService.notificationCreateRequestReject(jwtUtils.getUserIdFromRequest(),id,httpServletRequest);
         return new ResponseEntity<>(HttpStatus.OK);
     }
