@@ -1,11 +1,11 @@
 package com.g7.ercauthservice.controller;
 
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.g7.ercauthservice.entity.AuthUser;
 import com.g7.ercauthservice.entity.RefreshToken;
 import com.g7.ercauthservice.entity.Token;
 import com.g7.ercauthservice.enums.IssueType;
+import com.g7.ercauthservice.enums.MailType;
 import com.g7.ercauthservice.enums.Role;
 import com.g7.ercauthservice.exception.EmailEqualException;
 import com.g7.ercauthservice.exception.RoleException;
@@ -38,8 +38,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @RestController
@@ -58,9 +56,6 @@ public class AuthUserController {
     private TokenStoreService tokenStoreService;
     @Autowired
     private MailService mailService;
-    //@Autowired
-    //private RestTemplate restTemplate;
-
     @Value("${data.api.signUp}")
     private String userInfoAddURI;
     @Value("${data.api.email}")
@@ -131,7 +126,7 @@ public class AuthUserController {
             Token token = tokenStoreService.storeToken(new Token(tokenString, IssueType.FOR_INVITE_REVIEWER,"new reviewer request"));
             JSONObject response = new JSONObject();
             response.put("token",token.getId());
-            //mailService.sendEmail("gsample590@gmail.com","Invitation from ERC", MailType.INVITE_REVIEWER);
+            mailService.sendEmail("gsample590@gmail.com","Invitation from ERC", MailType.INVITE_REVIEWER,token.getId());
             return new ResponseEntity<>(response,HttpStatus.OK);
         }catch (Exception e){
             e.printStackTrace();
@@ -153,7 +148,7 @@ public class AuthUserController {
             Token token = tokenStoreService.storeToken(new Token(tokenString, IssueType.FOR_INVITE_CLERK,"new reviewer request"));
             JSONObject response = new JSONObject();
             response.put("token",token.getId());
-            //mailService.sendEmail("gsample590@gmail.com","Invitation from ERC", MailType.INVITE_CLERK);
+            mailService.sendEmail("gsample590@gmail.com","Invitation from ERC", MailType.INVITE_CLERK,token.getId());
             return new ResponseEntity<>(response,HttpStatus.OK);
         }catch (Exception e){
             e.printStackTrace();
@@ -175,7 +170,7 @@ public class AuthUserController {
             Token token = tokenStoreService.storeToken(new Token(tokenString, IssueType.FOR_INVITE_SECRETARY,"new reviewer request"));
             JSONObject response = new JSONObject();
             response.put("token",token.getId());
-            //mailService.sendEmail("gsample590@gmail.com","Invitation from ERC", MailType.INVITE_SECRETARY);
+            mailService.sendEmail("gsample590@gmail.com","Invitation from ERC", MailType.INVITE_SECRETARY,token.getId());
             return new ResponseEntity<>(response,HttpStatus.OK);
         }catch (Exception e){
             e.printStackTrace();
@@ -193,7 +188,7 @@ public class AuthUserController {
             Token token = tokenStoreService.storeToken(new Token(tokenString, IssueType.FOR_EMAIL_VERIFICATION,"new user request"));
             JSONObject response = new JSONObject();
             response.put("token",token.getId());
-            //mailService.sendEmail(email,"Complete the sign up process to ERC", MailType.MAIL_VERIFY,token.getId());
+            mailService.sendEmail(email,"Complete the sign up process to ERC", MailType.MAIL_VERIFY,token.getId());
             return new ResponseEntity<>(response,HttpStatus.OK);
         }catch (Exception e){
             e.printStackTrace();
@@ -360,7 +355,7 @@ public class AuthUserController {
             Token token = tokenStoreService.storeToken(new Token(tokenString, IssueType.FOR_FORGOT_PASSWORD, authUser.getId()));
             JSONObject response = new JSONObject();
             response.put("token",token.getId());
-            //mailService.sendEmail(authUser.getEmail(),"Reset your ERC password", MailType.FORGOT_PASSWORD,token.getId());
+            mailService.sendEmail(authUser.getEmail(),"Reset your ERC password", MailType.FORGOT_PASSWORD,token.getId());
             return new ResponseEntity<>(response,HttpStatus.OK);
         }catch (Exception e){
             e.printStackTrace();
@@ -457,8 +452,7 @@ public class AuthUserController {
             if(dataResponse.getStatusCodeValue() !=200 ){
                 authUserService.roleUpdateByUser(request.getId(),authUserOld.getRoles());
             }
-            //mailService.sendEmail("gsample590@gmail.com","Updated privileges on ERC", MailType.ROLE_CHANGE);
-            //defaultDataService.updateRoles(new ObjectMapper().writeValueAsString(roleUpdateRequest));
+            mailService.sendEmail("gsample590@gmail.com","Updated privileges on ERC", MailType.ROLE_CHANGE,null);
             notificationService.notificationCreateRequestUpdateRole(jwtUtils.getUserIdFromRequest(), request.getId(), httpServletRequest);
             return new ResponseEntity<>(HttpStatus.OK);
         }catch (Exception e){
