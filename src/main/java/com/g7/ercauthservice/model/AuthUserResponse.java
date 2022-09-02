@@ -16,4 +16,5 @@ public class AuthUserResponse {
     private Boolean isEnable;
     private Instant createdDate;
     private Instant modifiedDate;
+    private Boolean hasReviewed;
 }
