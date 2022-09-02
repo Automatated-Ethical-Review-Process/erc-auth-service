@@ -1,5 +1,6 @@
 package com.g7.ercauthservice.controller;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.g7.ercauthservice.entity.AuthUser;
 import com.g7.ercauthservice.entity.RefreshToken;
@@ -37,6 +38,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @RestController
@@ -66,6 +69,7 @@ public class AuthUserController {
     private String userInfoRoleUpdateURI;
     @Value("${data.api.reject}")
     private String userRemoveVerificationImageUpdateURI;
+
     @Value("${jwtExpirationMs}")
     private int accessExpirationMs;
     @Value("${jwtRefreshExpirationMs}")
@@ -269,8 +273,8 @@ public class AuthUserController {
     }
 
     @PutMapping("/user/lock/{id}")
-    public ResponseEntity<?> changeLockStateByUserId(@PathVariable String id){
-        authUserService.changeLockState(id);
+    public ResponseEntity<?> changeLockStateByUserId(@PathVariable String id,HttpServletRequest httpServletRequest) throws IOException {
+        authUserService.changeLockState(id,httpServletRequest);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

@@ -1,5 +1,7 @@
 package com.g7.ercauthservice.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.g7.ercauthservice.entity.AuthUser;
 import com.g7.ercauthservice.entity.RefreshToken;
 import com.g7.ercauthservice.entity.Token;
@@ -18,6 +20,11 @@ import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONObject;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -27,8 +34,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import javax.persistence.EntityNotFoundException;
+import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -52,6 +61,9 @@ public class AuthUserServiceImpl implements AuthUserService {
 
     @Autowired
     private JwtUtils jwtUtils;
+
+    @Value("${data.api.stat}")
+    private String getStatByUserURI;
 
     public AuthUserServiceImpl(AuthenticationManager authenticationManager) {
         this.authenticationManager = authenticationManager;
@@ -140,17 +152,39 @@ public class AuthUserServiceImpl implements AuthUserService {
         userRepository.save(authUser);
     }
     @Override
-    public void changeLockState(String id) {
+    public void changeLockState(String id, HttpServletRequest httpServletRequest) throws JsonProcessingException {
         AuthUser authUser = userRepository.findById(id).get();
         com.g7.ercauthservice.entity.Role admin = roleRepository.findByName(Role.ROLE_ADMIN).get();
         com.g7.ercauthservice.entity.Role secretary = roleRepository.findByName(Role.ROLE_SECRETARY).get();
         com.g7.ercauthservice.entity.Role clerk = roleRepository.findByName(Role.ROLE_CLERK).get();
+        com.g7.ercauthservice.entity.Role internalReviewer = roleRepository.findByName(Role.ROLE_INTERNAL_REVIEWER).get();
+        com.g7.ercauthservice.entity.Role externalReviewer = roleRepository.findByName(Role.ROLE_EXTERNAL_REVIEWER).get();
+        com.g7.ercauthservice.entity.Role applicant = roleRepository.findByName(Role.ROLE_APPLICANT).get();
+
         if(authUser.getRoles().contains(admin)||authUser.getRoles().contains(secretary)||authUser.getRoles().contains(clerk)){
             throw new CustomException("You are not allowed to perform this action");
-        }else{
-            authUser.setIsLocked(!authUser.getIsLocked());
-            userRepository.save(authUser);
         }
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers =  new HttpHeaders();
+        headers.add("Authorization",httpServletRequest.getHeader("Authorization"));
+        JSONObject jsonObject = new JSONObject();
+        HttpEntity<JSONObject> dataRequest = new HttpEntity<>(jsonObject,headers);
+        ResponseEntity<?> dataResponse = restTemplate.exchange(getStatByUserURI+"/"+id, HttpMethod.GET,dataRequest,String.class);
+        Stat stat = new ObjectMapper().readValue(dataResponse.getBody().toString(),Stat.class);
+
+        if(authUser.getRoles().contains(internalReviewer) || authUser.getRoles().contains(externalReviewer)){
+            if(stat.getAssigned() != 0){
+                throw new CustomException("This reviewer has assigned "+stat.getAssigned()+" proposal");
+            }
+        }
+
+        if(authUser.getRoles().contains(applicant)){
+            if(stat.getPending() !=0 || stat.getActive() !=0){
+                throw new CustomException("This applicant has ongoing  "+stat.getActive()+" proposal and pending "+stat.getPending()+" proposals");
+            }
+        }
+        authUser.setIsLocked(!authUser.getIsLocked());
+        userRepository.save(authUser);
     }
     @Override
     public void changeVerifiedState(String id) {
