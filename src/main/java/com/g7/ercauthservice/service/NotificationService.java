@@ -10,4 +10,5 @@ public interface NotificationService {
     void notificationCreateRequestUpdateRole(String sender,String receiver,HttpServletRequest request);
     void notificationCreateRequestUpdateEmail(String sender,String receiver,HttpServletRequest request,String oldEmail,String newEmail);
     void notificationCreateRequestVerify(String sender,String receiver,HttpServletRequest request);
+    void notificationCreateRequestReject(String sender,String receiver,HttpServletRequest request);
 }

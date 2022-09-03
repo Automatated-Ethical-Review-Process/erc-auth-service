@@ -5,6 +5,7 @@ import com.g7.ercauthservice.entity.AuthUser;
 import com.g7.ercauthservice.entity.RefreshToken;
 import com.g7.ercauthservice.entity.Token;
 import com.g7.ercauthservice.enums.IssueType;
+import com.g7.ercauthservice.enums.MailType;
 import com.g7.ercauthservice.enums.Role;
 import com.g7.ercauthservice.exception.EmailEqualException;
 import com.g7.ercauthservice.exception.RoleException;
@@ -42,7 +43,7 @@ import java.util.stream.Collectors;
 @RestController
 @Slf4j
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = {"https://localhost:3000", "https://erc-ruh.live","https://erc-data-service.herokuapp.com/"}, maxAge = 3600, allowCredentials = "true")
+@CrossOrigin(origins = {"http://localhost:3000", "https://erc-ruh.live","https://erc-data-service.herokuapp.com/"}, maxAge = 3600, allowCredentials = "true")
 public class AuthUserController {
 
     @Autowired
@@ -55,13 +56,15 @@ public class AuthUserController {
     private TokenStoreService tokenStoreService;
     @Autowired
     private MailService mailService;
-
     @Value("${data.api.signUp}")
     private String userInfoAddURI;
     @Value("${data.api.email}")
     private String userInfoEmailUpdateURI;
     @Value("${data.api.role}")
     private String userInfoRoleUpdateURI;
+    @Value("${data.api.reject}")
+    private String userRemoveVerificationImageUpdateURI;
+
     @Value("${jwtExpirationMs}")
     private int accessExpirationMs;
     @Value("${jwtRefreshExpirationMs}")
@@ -123,7 +126,7 @@ public class AuthUserController {
             Token token = tokenStoreService.storeToken(new Token(tokenString, IssueType.FOR_INVITE_REVIEWER,"new reviewer request"));
             JSONObject response = new JSONObject();
             response.put("token",token.getId());
-            //mailService.sendEmail("gsample590@gmail.com","Invitation from ERC", MailType.INVITE_REVIEWER);
+            mailService.sendEmail("gsample590@gmail.com","Invitation from ERC", MailType.INVITE_REVIEWER,token.getId());
             return new ResponseEntity<>(response,HttpStatus.OK);
         }catch (Exception e){
             e.printStackTrace();
@@ -145,7 +148,7 @@ public class AuthUserController {
             Token token = tokenStoreService.storeToken(new Token(tokenString, IssueType.FOR_INVITE_CLERK,"new reviewer request"));
             JSONObject response = new JSONObject();
             response.put("token",token.getId());
-            //mailService.sendEmail("gsample590@gmail.com","Invitation from ERC", MailType.INVITE_CLERK);
+            mailService.sendEmail("gsample590@gmail.com","Invitation from ERC", MailType.INVITE_CLERK,token.getId());
             return new ResponseEntity<>(response,HttpStatus.OK);
         }catch (Exception e){
             e.printStackTrace();
@@ -167,7 +170,7 @@ public class AuthUserController {
             Token token = tokenStoreService.storeToken(new Token(tokenString, IssueType.FOR_INVITE_SECRETARY,"new reviewer request"));
             JSONObject response = new JSONObject();
             response.put("token",token.getId());
-            //mailService.sendEmail("gsample590@gmail.com","Invitation from ERC", MailType.INVITE_SECRETARY);
+            mailService.sendEmail("gsample590@gmail.com","Invitation from ERC", MailType.INVITE_SECRETARY,token.getId());
             return new ResponseEntity<>(response,HttpStatus.OK);
         }catch (Exception e){
             e.printStackTrace();
@@ -185,7 +188,7 @@ public class AuthUserController {
             Token token = tokenStoreService.storeToken(new Token(tokenString, IssueType.FOR_EMAIL_VERIFICATION,"new user request"));
             JSONObject response = new JSONObject();
             response.put("token",token.getId());
-            //mailService.sendEmail(email,"Complete the sign up process to ERC", MailType.MAIL_VERIFY,token.getId());
+            mailService.sendEmail(email,"Complete the sign up process to ERC", MailType.MAIL_VERIFY,token.getId());
             return new ResponseEntity<>(response,HttpStatus.OK);
         }catch (Exception e){
             e.printStackTrace();
@@ -265,8 +268,8 @@ public class AuthUserController {
     }
 
     @PutMapping("/user/lock/{id}")
-    public ResponseEntity<?> changeLockStateByUserId(@PathVariable String id){
-        authUserService.changeLockState(id);
+    public ResponseEntity<?> changeLockStateByUserId(@PathVariable String id,HttpServletRequest httpServletRequest) throws IOException {
+        authUserService.changeLockState(id,httpServletRequest);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -352,7 +355,7 @@ public class AuthUserController {
             Token token = tokenStoreService.storeToken(new Token(tokenString, IssueType.FOR_FORGOT_PASSWORD, authUser.getId()));
             JSONObject response = new JSONObject();
             response.put("token",token.getId());
-            //mailService.sendEmail(authUser.getEmail(),"Reset your ERC password", MailType.FORGOT_PASSWORD,token.getId());
+            mailService.sendEmail(authUser.getEmail(),"Reset your ERC password", MailType.FORGOT_PASSWORD,token.getId());
             return new ResponseEntity<>(response,HttpStatus.OK);
         }catch (Exception e){
             e.printStackTrace();
@@ -449,8 +452,7 @@ public class AuthUserController {
             if(dataResponse.getStatusCodeValue() !=200 ){
                 authUserService.roleUpdateByUser(request.getId(),authUserOld.getRoles());
             }
-            //mailService.sendEmail("gsample590@gmail.com","Updated privileges on ERC", MailType.ROLE_CHANGE);
-            //defaultDataService.updateRoles(new ObjectMapper().writeValueAsString(roleUpdateRequest));
+            mailService.sendEmail("gsample590@gmail.com","Updated privileges on ERC", MailType.ROLE_CHANGE,null);
             notificationService.notificationCreateRequestUpdateRole(jwtUtils.getUserIdFromRequest(), request.getId(), httpServletRequest);
             return new ResponseEntity<>(HttpStatus.OK);
         }catch (Exception e){
@@ -546,8 +548,17 @@ public class AuthUserController {
     }
 
     @PutMapping("/user/reject/{id}")
-    public ResponseEntity<?> rejectUserRequestWithMessage(@RequestBody JSONObject jsonObject, @PathVariable String id){
+    public ResponseEntity<?> rejectUserRequestWithMessage(@RequestBody JSONObject jsonObject, @PathVariable String id,HttpServletRequest httpServletRequest){
         authUserService.setUserMessage(id, jsonObject.getAsString("message"));
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers =  new HttpHeaders();
+        headers.add("Authorization",httpServletRequest.getHeader("Authorization"));
+        JSONObject jsonObject1 = new JSONObject();
+        jsonObject1.put("id",id);
+        HttpEntity<JSONObject> dataRequest = new HttpEntity<>(jsonObject1,headers);
+        ResponseEntity<?> response =restTemplate.exchange(userRemoveVerificationImageUpdateURI, HttpMethod.PUT,dataRequest,String.class);
+        System.out.println(response);
+        notificationService.notificationCreateRequestReject(jwtUtils.getUserIdFromRequest(),id,httpServletRequest);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

@@ -1,11 +1,13 @@
 package com.g7.ercauthservice.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.g7.ercauthservice.entity.AuthUser;
 import com.g7.ercauthservice.entity.Role;
 import com.g7.ercauthservice.entity.Token;
 import com.g7.ercauthservice.model.*;
 import net.minidev.json.JSONObject;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Set;
 
@@ -24,7 +26,7 @@ public interface AuthUserService {
     JSONObject generateToken(AuthUserSignInRequest request);
     void updateEmailRollBack(UpdateEmailRequest request);
     void changeEnableState(String id);
-    void changeLockState(String id);
+    void changeLockState(String id, HttpServletRequest httpServletRequest) throws JsonProcessingException;
     void changeVerifiedState(String id);
     void roleUpdateByUser(String uid, Set<Role> roles);
     AuthUserStatusResponse getUserStatesById(String id);
