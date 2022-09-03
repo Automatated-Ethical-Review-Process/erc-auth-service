@@ -78,12 +78,6 @@ public class DefaultDataServiceImpl implements DefaultDataService {
                 AuthUser authUser = new AuthUser();
                 Set<String> roles = new HashSet<>();
                 roles.add("admin");
-                roles.add("secretary");
-                roles.add("applicant");
-                roles.add("clerk");
-                roles.add("internal_reviewer");
-                roles.add("external_reviewer");
-
                 authUser.setEmail("admin@gmail.com");
                 authUser.setPassword(passwordEncoder.encode("12345678"));
                 authUser.setIsLocked(true);
