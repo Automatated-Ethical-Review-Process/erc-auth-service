@@ -58,11 +58,11 @@ public class DefaultDataServiceImpl implements DefaultDataService {
             com.g7.ercauthservice.entity.Role role4 = new com.g7.ercauthservice.entity.Role(Role.ROLE_CLERK);
             com.g7.ercauthservice.entity.Role role5 = new com.g7.ercauthservice.entity.Role(Role.ROLE_SECRETARY);
             com.g7.ercauthservice.entity.Role role6 = new com.g7.ercauthservice.entity.Role(Role.ROLE_ADMIN);
-            roleRepository.save(role1);
-            roleRepository.save(role2);
-            roleRepository.save(role3);
-            roleRepository.save(role4);
-            roleRepository.save(role5);
+            //roleRepository.save(role1);
+            //roleRepository.save(role2);
+            //roleRepository.save(role3);
+            //roleRepository.save(role4);
+            //roleRepository.save(role5);
             roleRepository.save(role6);
             log.info("Inserted user roles to database");
             insertUsersToDB();
@@ -72,7 +72,6 @@ public class DefaultDataServiceImpl implements DefaultDataService {
     }
 
     @Override
-    //@PostConstruct
     public void insertUsersToDB() {
         try{
             if(userRepository.findAll().isEmpty()){
