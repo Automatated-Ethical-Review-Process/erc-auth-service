@@ -7,10 +7,7 @@ import com.g7.ercauthservice.entity.Token;
 import com.g7.ercauthservice.enums.IssueType;
 import com.g7.ercauthservice.enums.MailType;
 import com.g7.ercauthservice.enums.Role;
-import com.g7.ercauthservice.exception.EmailEqualException;
-import com.g7.ercauthservice.exception.RoleException;
-import com.g7.ercauthservice.exception.TokenRefreshException;
-import com.g7.ercauthservice.exception.UserAlreadyExistException;
+import com.g7.ercauthservice.exception.*;
 import com.g7.ercauthservice.model.*;
 import com.g7.ercauthservice.security.JwtUtils;
 import com.g7.ercauthservice.service.NotificationService;
@@ -199,7 +196,7 @@ public class AuthUserController {
         AuthUser authUser =  null;
         try {
             if(id == null || !tokenStoreService.exists(id)){
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+                throw new  CustomException("Null or Invalid token");
             }
             Token token = tokenStoreService.getTokenByIdAndIssueFor(id);
             authUser = authUserService.add(request.getPassword(),token);
