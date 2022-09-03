@@ -73,8 +73,6 @@ public class AuthUserController {
     private boolean secure;
 
     @Autowired
-    private DefaultDataServiceImpl defaultDataService;
-    @Autowired
     private NotificationService notificationService;
     private void addCookie(HttpServletResponse response, String name, String value, int maxAge) {
         ResponseCookie cookie = ResponseCookie.from(name, value)
@@ -235,7 +233,6 @@ public class AuthUserController {
 //            addCookie(response, "access", body.getAsString("access"), accessExpirationMs/1000);
             addCookie(response, "refresh", body.getAsString("refresh"), refreshExpirationMs/1000);
             log.info("user created >> {}",authUser.getEmail());
-            defaultDataService.sendMessage(new ObjectMapper().writeValueAsString(userInfo));
             return new ResponseEntity<>(body,HttpStatus.CREATED);
         }catch (Exception e){
             e.printStackTrace();
