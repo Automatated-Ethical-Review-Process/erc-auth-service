@@ -30,7 +30,7 @@ public class DefaultDataServiceImpl implements DefaultDataService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @PostConstruct
+    //@PostConstruct
     public void testMethod(){
         AuthUser authUser =authUserService.getAuthUserByRole(Role.ROLE_ADMIN);
         System.out.println(authUser);
