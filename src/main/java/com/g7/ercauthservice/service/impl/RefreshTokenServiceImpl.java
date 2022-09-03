@@ -37,7 +37,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
             refreshToken = refreshTokenRepository.findByAuthUser_Id(userId).get();
         }else{
             if(authUserRepository.findById(userId).isPresent()){
-                String [] token={jwt.substring(0,99), String.valueOf(Instant.now().hashCode()),jwt.substring(100,227)};
+               // String [] token={jwt.substring(0,99), String.valueOf(Instant.now().hashCode()),jwt.substring(100,227)};
                 refreshToken.setAuthUser(authUserRepository.findById(userId).get());
                 refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenDurationMs));
                 refreshToken.setToken(jwt);
