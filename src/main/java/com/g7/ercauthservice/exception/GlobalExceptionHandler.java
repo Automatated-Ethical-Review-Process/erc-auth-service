@@ -242,13 +242,4 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler{
         apiError.setFields(null);
         return new ResponseEntity<>(apiError,HttpStatus.BAD_REQUEST);
     }
-
-    @Override
-    protected ResponseEntity<Object> handleAsyncRequestTimeoutException(AsyncRequestTimeoutException ex, HttpHeaders headers, HttpStatus status, WebRequest webRequest) {
-        ApiError apiError = new ApiError();
-        apiError.setMessage("Required request body is missing");
-        apiError.setFields(null);
-        System.out.println("Hello Error");
-        return new ResponseEntity<>(apiError,HttpStatus.BAD_REQUEST);
-    }
 }
