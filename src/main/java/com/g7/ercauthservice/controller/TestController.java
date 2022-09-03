@@ -12,15 +12,6 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/auth/test")
 public class TestController{
 
-
-    @Autowired
-    private DefaultDataServiceImpl defaultDataService;
-    @GetMapping("/{message}")
-    public ResponseEntity<?> getMessage(@PathVariable String message){
-        defaultDataService.sendMessage(message);
-        return new ResponseEntity<>(message, HttpStatus.OK);
-    }
-
     @GetMapping("/user")
     public ResponseEntity<?> getMessage(@RequestBody UserInfo userInfo){
         //defaultDataService.sendUser(userInfo);

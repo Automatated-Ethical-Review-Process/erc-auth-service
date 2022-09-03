@@ -30,18 +30,6 @@ public class DefaultDataServiceImpl implements DefaultDataService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-
-    //@Autowired
-    //private  JmsTemplate jmsTemplate;
-
-    public void sendMessage(String name){
-        //jmsTemplate.convertAndSend("queue",name);
-    }
-    public void updateRoles(String data){
-        //jmsTemplate.convertAndSend("role_update",data);
-    }
-
-
     @PostConstruct
     public void testMethod(){
         AuthUser authUser =authUserService.getAuthUserByRole(Role.ROLE_ADMIN);
