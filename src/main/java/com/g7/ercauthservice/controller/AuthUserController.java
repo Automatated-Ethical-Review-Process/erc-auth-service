@@ -442,7 +442,7 @@ public class AuthUserController {
             UserRoleUpdateRequest roleUpdateRequest = new UserRoleUpdateRequest(authUser.getId(),authUser.getRoles());
             HttpEntity<UserRoleUpdateRequest> dataRequest = new HttpEntity<>(roleUpdateRequest,headers);
             ResponseEntity<?> dataResponse = restTemplate.exchange(userInfoRoleUpdateURI, HttpMethod.PUT,dataRequest,String.class);
-
+            System.out.println(dataResponse);
             if(dataResponse.getStatusCodeValue() !=200 ){
                 authUserService.roleUpdateByUser(request.getId(),authUserOld.getRoles());
             }
