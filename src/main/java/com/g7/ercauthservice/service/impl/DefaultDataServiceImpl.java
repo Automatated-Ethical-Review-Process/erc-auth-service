@@ -30,19 +30,7 @@ public class DefaultDataServiceImpl implements DefaultDataService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-
-    //@Autowired
-    //private  JmsTemplate jmsTemplate;
-
-    public void sendMessage(String name){
-        //jmsTemplate.convertAndSend("queue",name);
-    }
-    public void updateRoles(String data){
-        //jmsTemplate.convertAndSend("role_update",data);
-    }
-
-
-    @PostConstruct
+    //@PostConstruct
     public void testMethod(){
         AuthUser authUser =authUserService.getAuthUserByRole(Role.ROLE_ADMIN);
         System.out.println(authUser);
@@ -58,11 +46,11 @@ public class DefaultDataServiceImpl implements DefaultDataService {
             com.g7.ercauthservice.entity.Role role4 = new com.g7.ercauthservice.entity.Role(Role.ROLE_CLERK);
             com.g7.ercauthservice.entity.Role role5 = new com.g7.ercauthservice.entity.Role(Role.ROLE_SECRETARY);
             com.g7.ercauthservice.entity.Role role6 = new com.g7.ercauthservice.entity.Role(Role.ROLE_ADMIN);
-            //roleRepository.save(role1);
-            //roleRepository.save(role2);
-            //roleRepository.save(role3);
-            //roleRepository.save(role4);
-            //roleRepository.save(role5);
+            roleRepository.save(role1);
+            roleRepository.save(role2);
+            roleRepository.save(role3);
+            roleRepository.save(role4);
+            roleRepository.save(role5);
             roleRepository.save(role6);
             log.info("Inserted user roles to database");
             insertUsersToDB();
@@ -78,12 +66,6 @@ public class DefaultDataServiceImpl implements DefaultDataService {
                 AuthUser authUser = new AuthUser();
                 Set<String> roles = new HashSet<>();
                 roles.add("admin");
-                roles.add("secretary");
-                roles.add("applicant");
-                roles.add("clerk");
-                roles.add("internal_reviewer");
-                roles.add("external_reviewer");
-
                 authUser.setEmail("admin@gmail.com");
                 authUser.setPassword(passwordEncoder.encode("12345678"));
                 authUser.setIsLocked(true);

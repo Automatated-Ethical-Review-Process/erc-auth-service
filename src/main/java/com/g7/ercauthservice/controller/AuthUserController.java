@@ -7,10 +7,7 @@ import com.g7.ercauthservice.entity.Token;
 import com.g7.ercauthservice.enums.IssueType;
 import com.g7.ercauthservice.enums.MailType;
 import com.g7.ercauthservice.enums.Role;
-import com.g7.ercauthservice.exception.EmailEqualException;
-import com.g7.ercauthservice.exception.RoleException;
-import com.g7.ercauthservice.exception.TokenRefreshException;
-import com.g7.ercauthservice.exception.UserAlreadyExistException;
+import com.g7.ercauthservice.exception.*;
 import com.g7.ercauthservice.model.*;
 import com.g7.ercauthservice.security.JwtUtils;
 import com.g7.ercauthservice.service.NotificationService;
@@ -72,8 +69,6 @@ public class AuthUserController {
     @Value("${cookie.secure}")
     private boolean secure;
 
-    @Autowired
-    private DefaultDataServiceImpl defaultDataService;
     @Autowired
     private NotificationService notificationService;
     private void addCookie(HttpServletResponse response, String name, String value, int maxAge) {
@@ -201,7 +196,7 @@ public class AuthUserController {
         AuthUser authUser =  null;
         try {
             if(id == null || !tokenStoreService.exists(id)){
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+                throw new  CustomException("Null or Invalid token");
             }
             Token token = tokenStoreService.getTokenByIdAndIssueFor(id);
             authUser = authUserService.add(request.getPassword(),token);
@@ -235,7 +230,6 @@ public class AuthUserController {
 //            addCookie(response, "access", body.getAsString("access"), accessExpirationMs/1000);
             addCookie(response, "refresh", body.getAsString("refresh"), refreshExpirationMs/1000);
             log.info("user created >> {}",authUser.getEmail());
-            defaultDataService.sendMessage(new ObjectMapper().writeValueAsString(userInfo));
             return new ResponseEntity<>(body,HttpStatus.CREATED);
         }catch (Exception e){
             e.printStackTrace();
@@ -448,7 +442,7 @@ public class AuthUserController {
             UserRoleUpdateRequest roleUpdateRequest = new UserRoleUpdateRequest(authUser.getId(),authUser.getRoles());
             HttpEntity<UserRoleUpdateRequest> dataRequest = new HttpEntity<>(roleUpdateRequest,headers);
             ResponseEntity<?> dataResponse = restTemplate.exchange(userInfoRoleUpdateURI, HttpMethod.PUT,dataRequest,String.class);
-
+            System.out.println(dataResponse);
             if(dataResponse.getStatusCodeValue() !=200 ){
                 authUserService.roleUpdateByUser(request.getId(),authUserOld.getRoles());
             }

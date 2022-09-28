@@ -85,7 +85,7 @@ public class AuthUserServiceImpl implements AuthUserService {
                 break;
             case FOR_INVITE_SECRETARY:
                 roles.add("secretary");
-                roles.add("reviewer");
+                roles.add("internal_reviewer");
                 break;
             case FOR_INVITE_CLERK:
                 roles.add("clerk");
